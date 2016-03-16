@@ -5,22 +5,18 @@
 PROJECT = bootloader
 
 COMBO = combo
-MAINAPP_HEX = ../smr/main.hex
+MAINAPP_HEX = ../dld_10/build/main.hex
 
 # Object files
 OBJECTS = 	startup_stm32f429_439xx.o system_stm32f4xx.o \
-			bootloader.o inouts.o bootloader_utils.o system_clock.o system.o led_driver.o \
+			bootloader.o dig_inouts.o bootloader_utils.o system_clock.o system.o \
 			misc.o stm32f4xx_flash.o stm32f4xx_gpio.o stm32f4xx_rcc.o stm32f4xx_tim.o stm32f4xx_i2c.o \
-			stm32f4xx_spi.o stm32f4xx_dma.o codec.o i2s.o encoding/fsk/packet_decoder.o 
-#			stm32f4xx_spi.o stm32f4xx_dma.o codec.o i2s.o encoding/qpsk/demodulator.o encoding/qpsk/packet_decoder.o 
-#			encoding/fsk/packet_decoder.o 
+			stm32f4xx_spi.o stm32f4xx_dma.o codec.o i2s.o \
+			encoding/fsk/packet_decoder.o 
 		
 			
- 
 # Linker script
 LDSCRIPT = stm32f429xx.ld
-
-# -finline-functions, -funswitch-loops, -fpredictive-commoning, -fgcse-after-reload, -ftree-vectorize
 
 ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4 -mfloat-abi=soft -mfpu=fpv4-sp-d16 
 F_CPU          = 168000000L
@@ -32,7 +28,6 @@ CFLAGS +=  -fsingle-precision-constant -Wdouble-promotion 	-L'/Users/design/4ms/
 
 
 CPPFLAGS      = -fno-exceptions
-
 
 AFLAGS  = $(ARCHFLAGS)
 #LFLAGS  = -Map $(PROJECT).map -nostartfiles -T $(LDSCRIPT)

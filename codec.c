@@ -90,6 +90,10 @@
 #define format_24b (2<<2)
 #define format_32b (3<<2)
 
+#define Master_Mode (1<<6)
+#define Slave_Mode (0<<6)
+
+
 // Oddness:
 // format_I2S does not work with I2S2 on the STM32F427Z (works on the 427V) in Master TX mode (I2S2ext is RX)
 // The RX data is shifted left 2 bits (x4) as it comes in, causing digital wrap-around clipping.
@@ -116,8 +120,9 @@ const uint16_t w8731_init_data[] =
 
 	0x062,				// Reg 06: Power Down Control (Clkout, Osc, Mic Off)
 
-	(format_24b			// Reg 07: Digital Audio Interface Format (24-bit, slave)
-	| format_I2S),
+	(format_24b			// Reg 07: Digital Audio Interface Format (24-bit, master)
+	| format_I2S
+	| Master_Mode),
 
 	0x000,				// Reg 08: Sampling Control (Normal, 256x, 48k ADC/DAC)
 
@@ -342,8 +347,10 @@ void Codec_AudioInterface_Init(uint32_t AudioFreq)
 	I2S_InitStructure.I2S_Standard = I2S_STANDARD;
 	I2S_InitStructure.I2S_DataFormat = I2S_DataFormat_24b;//extended;
 	I2S_InitStructure.I2S_CPOL = I2S_CPOL_Low;
-	I2S_InitStructure.I2S_Mode = I2S_Mode_MasterTx;
-	I2S_InitStructure.I2S_MCLKOutput = I2S_MCLKOutput_Enable;
+//	I2S_InitStructure.I2S_Mode = I2S_Mode_MasterTx;
+	I2S_InitStructure.I2S_Mode = I2S_Mode_SlaveTx;
+//	I2S_InitStructure.I2S_MCLKOutput = I2S_MCLKOutput_Enable;
+	I2S_InitStructure.I2S_MCLKOutput = I2S_MCLKOutput_Disable;
 
 	/* Initialize the I2S main channel for TX */
 	I2S_Init(CODEC_I2S, &I2S_InitStructure);
@@ -381,21 +388,31 @@ void Codec_GPIO_Init(void)
 	GPIO_PinAFConfig(CODEC_I2C_GPIO, CODEC_I2S_SDA_PINSRC, CODEC_I2C_GPIO_AF);
 
 	/* CODEC_I2S output pins configuration: WS, SCK SD0 and SDI pins ------------------*/
-	GPIO_InitStructure.GPIO_Pin = CODEC_I2S_SCK_PIN | CODEC_I2S_SDO_PIN | CODEC_I2S_SDI_PIN | CODEC_I2S_WS_PIN;
+	GPIO_InitStructure.GPIO_Pin = CODEC_I2S_SDO_PIN | CODEC_I2S_SDI_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(CODEC_I2S_GPIO, &GPIO_InitStructure);
 
-	/* CODEC_I2S pins configuration: MCK pin */
+	GPIO_InitStructure.GPIO_Pin = CODEC_I2S_SCK_PIN;
+	GPIO_Init(CODEC_I2S_SCK_GPIO, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = CODEC_I2S_WS_PIN;
+	GPIO_Init(CODEC_I2S_WS_GPIO, &GPIO_InitStructure);
+
+
+	/* CODEC_I2S pins configuration: disable MCK pin */
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_InitStructure.GPIO_Pin = CODEC_I2S_MCK_PIN;
 	GPIO_Init(CODEC_I2S_MCK_GPIO, &GPIO_InitStructure);
 
 	/* Connect pins to I2S peripheral  */
-	GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_WS_PINSRC, CODEC_I2S_GPIO_AF);
-	GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_SCK_PINSRC, CODEC_I2S_GPIO_AF);
+	GPIO_PinAFConfig(CODEC_I2S_WS_GPIO, CODEC_I2S_WS_PINSRC, CODEC_I2S_GPIO_AF);
+	GPIO_PinAFConfig(CODEC_I2S_SCK_GPIO, CODEC_I2S_SCK_PINSRC, CODEC_I2S_GPIO_AF);
 	GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_SDO_PINSRC, CODEC_I2S_GPIO_AF);
-	GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_SDI_PINSRC, CODEC_I2S_GPIO_AF);
-	GPIO_PinAFConfig(CODEC_I2S_MCK_GPIO, CODEC_I2S_MCK_PINSRC, CODEC_I2S_GPIO_AF);
+	GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_SDI_PINSRC, CODEC_I2Sext_GPIO_AF);
+
+//	GPIO_PinAFConfig(CODEC_I2S_MCK_GPIO, CODEC_I2S_MCK_PINSRC, CODEC_I2S_GPIO_AF);
 }

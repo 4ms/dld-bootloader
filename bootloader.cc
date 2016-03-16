@@ -43,10 +43,9 @@
 
 extern "C" {
 #include <stddef.h> /* size_t */
-#include "inouts.h"
+#include "dig_inouts.h"
 #include "codec.h"
 #include "i2s.h"
-#include "led_driver.h"
 
 #define delay(x)						\
 do {							\
@@ -56,11 +55,6 @@ do {							\
 } while (0)
 
 }
-
-const int LED_LOCK[6]={LED_LOCK1, LED_LOCK2, LED_LOCK3, LED_LOCK4, LED_LOCK5, LED_LOCK6};
-const uint32_t slider_led[6]={LED_SLIDER1, LED_SLIDER2, LED_SLIDER3, LED_SLIDER4, LED_SLIDER5, LED_SLIDER6};
-#define ALL_SLIDERS (LED_SLIDER1|LED_SLIDER2|LED_SLIDER3|LED_SLIDER4|LED_SLIDER5|LED_SLIDER6)
-#define ALL_LOCK_LEDS (LED_LOCK1| LED_LOCK2| LED_LOCK3| LED_LOCK4| LED_LOCK5| LED_LOCK6)
 
 using namespace smr;
 using namespace stmlib;
@@ -116,45 +110,51 @@ inline void *memcpy(void *dest, const void *src, size_t n)
 }
 
 
-void update_slider_LEDs(void){
+void update_LEDs(void){
 	static uint16_t dly=0;
 	uint16_t fade_speed=800;
+	uint8_t pck_ctr=0;
 
 	if (ui_state == UI_STATE_RECEIVING){
+		if (dly++>400){
+			dly=0;
+			LED_OVLD1_OFF;
+
+		} else if (dly==200){
+			LED_OVLD1_ON;
+		}
+
+		/*
 		if (packet_index>old_packet_index){
 			old_packet_index=packet_index;
-			LED_SLIDER_OFF(ALL_SLIDERS);
-			LED_SLIDER_ON(slider_led[slider_i]);
-			if (++slider_i>=6) slider_i=0;
 
-			//FSK only?
-
-			if (((packet_index/6) % (78*2) )<78)
-				LEDDriver_set_one_LED((packet_index/6) % 78, 500);
+			if (pck_ctr)
+				LED_OVLD2_ON;
 			else
-				LEDDriver_set_one_LED((packet_index/6) % 78, 0);
+				LED_OVLD2_OFF;
 
-		}
+			pck_ctr=1-pck_ctr;
+		}*/
 	} else if (ui_state == UI_STATE_WRITING){
 
 		if (dly++>400){
 			dly=0;
-			LED_SLIDER_OFF(ALL_SLIDERS);
+			LED_OVLD2_OFF;
+
 		} else if (dly==200){
-			LED_SLIDER_ON(ALL_SLIDERS);
+			LED_OVLD2_ON;
 		}
 
 	} else if (ui_state == UI_STATE_WAITING){
 
-		if (dly==(fade_speed>>1)){ 		LEDDriver_set_one_LED(1, 500);LEDDriver_set_one_LED(2, 0);}
-		if (dly++==fade_speed) {dly=0;	LEDDriver_set_one_LED(1, 0);LEDDriver_set_one_LED(2, 500);}
 
+		if (dly==(fade_speed>>1)){
+			LED_INF1_ON;
+		}
+		if (dly++==fade_speed) {dly=0;
+			LED_INF1_OFF;
+		}
 
-		//FSK only (needs to be optimized for QPSK)
-		/*
-		LEDDriver_set_one_LED(0, dly>fade_speed/2 ? dly : fade_speed-dly);
-		LEDDriver_set_one_LED(1, dly>fade_speed/2 ? fade_speed-dly: dly);
-		*/
 	}
 
 }
@@ -166,16 +166,15 @@ bool exit_updater;
 void check_button(void){
 	uint16_t t;
 
-	//Button depressed: ROTARY_SW=true, released: ROTARY_SW=false
 	//Depressed adds a 0, released adds a 1
 
-	if (ROTARY_SW) t=0xe000; else t=0xe001; //1110 0000 0000 000(0|1)
+	if (INF1BUT) t=0xe000; else t=0xe001; //1110 0000 0000 000(0|1)
 	State=(State<<1) | t;
 
 	if (State == 0xff00)  	//Released event (depressed followed by released)
 		manual_exit_primed=1;
 
-	if (State == 0xe00f){ 				 //Depressed event (released followed by a bunch of depressed)
+	if (State == 0xe00f){ 				 //Depressed event (released followed by a depressed)
 		if (packet_index==0 && manual_exit_primed==1)
 			exit_updater=1;
 	}
@@ -184,45 +183,17 @@ void check_button(void){
 
 void SysTick_Handler() {
 	system_clock.Tick();  // Tick global ms counter.
-	update_slider_LEDs();
+	update_LEDs();
 	check_button();
 }
 
 uint16_t discard_samples = 8000;
-
-/*
-void TIM4_IRQHandler(void)
-{
-
-	LED_ON(LED_LOCK[0]);
-
-	if (!discard_samples) {
-		bool sample = ROTUP ? true : false;
-
-		if (sample) 	{LOCKJACK_ON;}
-		else {LOCKJACK_OFF;}
-
-		demodulator.PushSample(sample);
-	} else {
-		--discard_samples;
-	}
-
-	LED_OFF(LED_LOCK[0]);
-
-	// Clear TIM4 update interrupt
-	TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-
-
-}
-*/
 
 void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size){
 	bool sample;
 	static bool last_sample=false;
 	int32_t t;
 	//int32_t sample;
-
-	LED_ON(LED_LOCK[5]);
 
 	while (size) {
 		size-=4;
@@ -243,8 +214,8 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 		last_sample=sample;
 
 
-		if (sample) LOCKJACK_ON;
-		else LOCKJACK_OFF;
+		if (sample) CLKOUT_ON;
+		else CLKOUT_OFF;
 
 		if (!discard_samples) {
 			demodulator.PushSample(sample);
@@ -266,7 +237,6 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 		*input++;
 
 	}
-	LED_OFF(LED_LOCK[5]);
 
 }
 
@@ -305,9 +275,11 @@ inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 		//check if dst_addr is the start of a sector (in which case we should erase the sector)
 		for (int32_t i = 0; i < 12; ++i) {
 			if (dst_addr == kSectorBaseAddress[i]) {
-				LED_ON(LED_LOCK[i % 6]);
+
+				LED_INF1_OFF;	LED_INF2_OFF;	LED_PINGBUT_OFF;	LED_OVLD1_OFF;	LED_OVLD2_OFF;
 				FLASH_EraseSector(i * 8, VoltageRange_3);
-				LED_OFF(LED_LOCK[i % 6]);
+				LED_INF1_ON;	LED_INF2_ON;	LED_PINGBUT_ON;	LED_OVLD1_ON;	LED_OVLD2_ON;
+
 			}
 		}
 
@@ -326,7 +298,7 @@ inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 
 
 inline void ProgramPage(const uint8_t* data, size_t size) {
-	LED_ON(LED_LOCK[4]);
+	LED_PINGBUT_ON;
 
 	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
@@ -346,11 +318,12 @@ inline void ProgramPage(const uint8_t* data, size_t size) {
 			break;
 		}
 	}
-
-	LED_OFF(LED_LOCK[4]);
+	LED_PINGBUT_OFF;
 }
 
 void init_audio_in(){
+
+	//Set Si5351a outputs to 12.833MHz (48kHz * 256)
 
 	//QPSK or Codec
 	Codec_Init(48000);
@@ -364,25 +337,9 @@ void init_audio_in(){
 void Init() {
 	sys.Init((F_CPU / (2*kSampleRate ))- 1, false);
 	system_clock.Init();
-	init_inouts();
+	init_dig_inouts();
 }
 
-void LED_ring_startup(void){
-	uint16_t i;
-	uint32_t dly;
-	uint8_t trail=8;
-
-	LED_ON(LED_RING_OE); //actually turns the LED ring off
-	LEDDriver_Init(5);
-	for (i=0;i<26;i++)	LEDDriver_setRGBLED(i,0);
-	LED_OFF(LED_RING_OE); //actually turns the LED ring on
-
-	for (i=0;i<77+trail;i++){
-		if (i<77) LEDDriver_set_one_LED(i, 500);
-		delay(300000);
-		if (i>=trail) LEDDriver_set_one_LED(i-trail, 0);
-	}
-}
 
 void InitializeReception() {
 
@@ -394,8 +351,6 @@ void InitializeReception() {
 
 	demodulator.Init(16, 8, 4);
 	demodulator.Sync();
-
-
 
 	//QPSK
 	/*
@@ -415,7 +370,7 @@ void InitializeReception() {
 	ui_state = UI_STATE_WAITING;
 }
 
-
+#define BOOTLOADER_BUTTON (REVSW_CH1 && REVSW_CH2 && PINGBUT)
 int main(void) {
 	uint32_t symbols_processed=0;
 	uint32_t dly=0, button_debounce=0;
@@ -427,29 +382,26 @@ int main(void) {
 
 	dly=4000;
 	while(dly--){
-		if (ROTARY_SW) button_debounce++;
+		if (BOOTLOADER_BUTTON) button_debounce++;
 		else button_debounce=0;
 	}
 	exit_updater = (button_debounce>2000) ? 0 : 1;
 
 	if (!exit_updater){
-		LED_OFF(ALL_LOCK_LEDS);
-		LED_SLIDER_OFF(ALL_SLIDERS);
-
-		LED_ring_startup();
-
+		LED_INF2_ON;
 		init_audio_in(); //QPSK or Codec
 		sys.StartTimers();
 	}
 
 	dly=4000;
 	while(dly--){
-		if (ROTARY_SW) button_debounce++;
+		if (BOOTLOADER_BUTTON) button_debounce++;
 		else button_debounce=0;
 	}
 	exit_updater = (button_debounce>2000) ? 0 : 1;
 
 	manual_exit_primed=0;
+	LED_INF2_OFF;
 
 	while (!exit_updater) {
 		g_error = false;
@@ -492,27 +444,20 @@ int main(void) {
 				break;
 
 				case PACKET_DECODER_STATE_ERROR_SYNC:
-					LED_ON(LED_LOCK[2]);
+					LED_OVLD1_ON;
 					g_error = true;
 					break;
 
 				case PACKET_DECODER_STATE_ERROR_CRC:
-					LED_ON(LED_LOCK[3]);
+					LED_OVLD2_ON;
 					g_error = true;
 					break;
 
 				case PACKET_DECODER_STATE_END_OF_TRANSMISSION:
 					exit_updater = true;
-					LED_OFF(ALL_LOCK_LEDS);
-					LED_ON(LED_LOCK[0]);
-					LED_ON(LED_LOCK[5]);
 
 					//Copy from Receive buffer to Execution memory
-
 					CopyMemory(kStartReceiveAddress, kStartExecutionAddress, (current_address-kStartReceiveAddress));
-
-					LED_ON(ALL_LOCK_LEDS);
-
 					break;
 
 				default:
@@ -522,24 +467,19 @@ int main(void) {
 		if (g_error) {
 			ui_state = UI_STATE_ERROR;
 
-			LED_ON(LED_LOCK[1]);
-			while (!ROTARY_SW){;}
+			while (!REVSW_CH1){;}
 
-			LED_OFF(LED_LOCK[1]);
-			while (ROTARY_SW){;}
+			while (REVSW_CH1){;}
 
-			LED_OFF(ALL_LOCK_LEDS);
-			LED_SLIDER_OFF(ALL_SLIDERS);
-
-			for (i=0;i<26;i++){
-				LEDDriver_setRGBLED(i,0);
-			}
+			LED_INF1_OFF;	LED_INF2_OFF;	LED_PINGBUT_OFF;	LED_OVLD1_OFF;	LED_OVLD2_OFF;
 
 			InitializeReception();
 			manual_exit_primed=0;
 			exit_updater=false;
 		}
 	}
+
+	LED_INF1_OFF;	LED_INF2_OFF;	LED_PINGBUT_OFF;	LED_OVLD1_OFF;	LED_OVLD2_OFF;
 
 	Uninitialize();
 	JumpTo(kStartExecutionAddress);
