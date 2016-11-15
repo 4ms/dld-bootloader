@@ -27,8 +27,6 @@
 #define INF2BUT_GPIO GPIOA
 #define INF2BUT (!(INF2BUT_GPIO->IDR & INF2BUT_pin))
 
-#define REV_RCC RCC_AHB1Periph_GPIOD
-
 
 #define REVSW_RCC RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOG
 

@@ -15,6 +15,8 @@
 
 void I2S_Block_Init(void);
 void I2S_Block_PlayRec(void);
+void DeInit_I2SDMA(void);
+void Init_I2SDMA_Channel(void);
 
 #endif
 

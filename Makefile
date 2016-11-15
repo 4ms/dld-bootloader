@@ -4,7 +4,8 @@
 
 PROJECT = bootloader
 
-COMBO = combo
+COMBO = ../dld_10/build/combo
+MAINAPP_DIR = ../dld_10/
 MAINAPP_HEX = ../dld_10/build/main.hex
 
 # Object files
@@ -72,7 +73,7 @@ $(PROJECT).hex: $(PROJECT).elf
 # Bootloader merging
 # ------------------------------------------------------------------------------
 
-combo: $(COMBO).bin
+combo: $(COMBO).bin 
 
 $(COMBO).bin:  $(MAINAPP_HEX) $(PROJECT).hex
 	cat  $(MAINAPP_HEX) $(PROJECT).hex | \
@@ -93,6 +94,9 @@ $(PROJECT).elf: $(OBJECTS) $(LDSCRIPT)
 startup_stm32f4xx.o: startup_stm32f4xx.s
 	$(AS) $(AFLAGS) startup_stm32f4xx.s -o startup_stm32f4xx.o > startup_stm32f4xx.lst
 	
+archive: $(COMBO).bin
+	zip -r ../dld_10/firmwares/dld-$(shell date +'%Y%m%d-%H%M%S').zip ../dld_10/* -x ../dld_10/firmwares/\* ../dld_10/.\*
+
 %.o: %.cc
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 

@@ -150,6 +150,8 @@ void update_LEDs(void){
 
 		if (dly==(fade_speed>>1)){
 			LED_INF1_ON;
+			LED_OVLD2_ON;
+
 		}
 		if (dly++==fade_speed) {dly=0;
 			LED_INF1_OFF;
@@ -198,7 +200,12 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 	while (size) {
 		size-=4;
 
-		t=*input;
+		*input++; //Return
+		*input++; //Return
+
+		t=*input; //Main in
+		*input++;//Main in
+		*input++;//Main in
 
 		if (last_sample==true){
 			if (t < -300)
@@ -223,18 +230,22 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 			--discard_samples;
 		}
 
-		if (ui_state == UI_STATE_ERROR)
-			*output++=0;
-		else
-			*output++=*input;
-		*output++=0;
-		*output++=0;
-		*output++=0;
 
-		*input++;
-		*input++;
-		*input++;
-		*input++;
+		if (ui_state == UI_STATE_ERROR)
+		{
+			*output++=0;
+			*output++=0;
+			*output++=0;
+			*output++=0;
+		}
+		else
+		{
+			*output++=t;
+			*output++=0;
+			*output++=t;
+			*output++=0;
+		}
+
 
 	}
 
@@ -323,14 +334,14 @@ inline void ProgramPage(const uint8_t* data, size_t size) {
 
 void init_audio_in(){
 
-	//Set Si5351a outputs to 12.833MHz (48kHz * 256)
+	Codec_Init_Reset_GPIO();
+	Codec_Deinit();
+	do {register unsigned int i; for (i = 0; i < 1000000; ++i) __asm__ __volatile__ ("nop\n\t":::"memory");} while (0);
 
 	//QPSK or Codec
 	Codec_Init(48000);
-	do {register unsigned int i; for (i = 0; i < 1000000; ++i) __asm__ __volatile__ ("nop\n\t":::"memory");} while (0);
-	I2S_Block_Init();
-	do {register unsigned int i; for (i = 0; i < 1000000; ++i) __asm__ __volatile__ ("nop\n\t":::"memory");} while (0);
-	I2S_Block_PlayRec();
+
+	NVIC_EnableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
 
 }
 
@@ -370,29 +381,45 @@ void InitializeReception() {
 	ui_state = UI_STATE_WAITING;
 }
 
-#define BOOTLOADER_BUTTON (REVSW_CH1 && REVSW_CH2 && PINGBUT)
+#define BOOTLOADER_BUTTON (\
+		REVSW_CH1 && \
+		REVSW_CH2 && \
+		!INF1BUT &&\
+		!INF2BUT &&\
+		PINGBUT\
+		)
+
 int main(void) {
 	uint32_t symbols_processed=0;
 	uint32_t dly=0, button_debounce=0;
 	uint8_t i;
 
+	delay(25000);
+
 //	InitializeReception(); //QPSK
 	Init();
 	InitializeReception(); //FSK
 
-	dly=4000;
+	LED_OVLD2_OFF;
+
+	LED_OVLD1_ON;
+	dly=32000;
 	while(dly--){
 		if (BOOTLOADER_BUTTON) button_debounce++;
 		else button_debounce=0;
 	}
-	exit_updater = (button_debounce>2000) ? 0 : 1;
+	exit_updater = (button_debounce>15000) ? 0 : 1;
+	LED_OVLD1_OFF;
+
 
 	if (!exit_updater){
+		LED_INF1_ON;
 		LED_INF2_ON;
 		init_audio_in(); //QPSK or Codec
 		sys.StartTimers();
 	}
 
+	LED_OVLD2_ON;
 	dly=4000;
 	while(dly--){
 		if (BOOTLOADER_BUTTON) button_debounce++;
@@ -402,6 +429,7 @@ int main(void) {
 
 	manual_exit_primed=0;
 	LED_INF2_OFF;
+	LED_OVLD2_OFF;
 
 	while (!exit_updater) {
 		g_error = false;
@@ -480,6 +508,10 @@ int main(void) {
 	}
 
 	LED_INF1_OFF;	LED_INF2_OFF;	LED_PINGBUT_OFF;	LED_OVLD1_OFF;	LED_OVLD2_OFF;
+
+	Codec_PowerDown();
+	Codec_Deinit();
+	delay(25000);
 
 	Uninitialize();
 	JumpTo(kStartExecutionAddress);
