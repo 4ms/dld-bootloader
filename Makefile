@@ -4,9 +4,9 @@
 
 PROJECT = bootloader
 
-COMBO = ../dld_10/build/combo
-MAINAPP_DIR = ../dld_10/
-MAINAPP_HEX = ../dld_10/build/main.hex
+COMBO = ../DLD/build/combo
+MAINAPP_DIR = ../DLD/
+MAINAPP_HEX = ../DLD/build/main.hex
 
 # Object files
 OBJECTS = 	startup_stm32f429_439xx.o system_stm32f4xx.o \
@@ -95,7 +95,7 @@ startup_stm32f4xx.o: startup_stm32f4xx.s
 	$(AS) $(AFLAGS) startup_stm32f4xx.s -o startup_stm32f4xx.o > startup_stm32f4xx.lst
 	
 archive: $(COMBO).bin
-	zip -r ../dld_10/firmwares/dld-$(shell date +'%Y%m%d-%H%M%S').zip ../dld_10/* -x ../dld_10/firmwares/\* ../dld_10/.\*
+	zip -r ../DLD/firmwares/dld-$(shell date +'%Y%m%d-%H%M%S').zip ../DLD/* -x ../DLD/firmwares/\* ../DLD/.\*
 
 %.o: %.cc
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
