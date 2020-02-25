@@ -30,48 +30,15 @@
 
 namespace smr {
 
-void System::Init(uint32_t timer_period, bool application) {
+void System::Init(bool application) {
 	SystemInit();
 
 	if (application) {
 		NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x8000);
 	}
-
-	//FSK
-	/*
-	TIM_TimeBaseInitTypeDef  tim;
-
-	uint16_t PrescalerValue = 0;
-
-	NVIC_InitTypeDef nvic;
-
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
-
-	TIM_Cmd(TIM4, DISABLE);
-
-	nvic.NVIC_IRQChannel = TIM4_IRQn;
-	nvic.NVIC_IRQChannelPreemptionPriority = 0;
-	nvic.NVIC_IRQChannelSubPriority = 0;
-	nvic.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&nvic);
-
-	TIM_TimeBaseStructInit(&tim);
-	tim.TIM_Period = timer_period;
-	tim.TIM_Prescaler = 0;
-	tim.TIM_ClockDivision = 0;
-	tim.TIM_CounterMode = TIM_CounterMode_Up;
-
-	TIM_TimeBaseInit(TIM4, &tim);
-
-	TIM_ITConfig(TIM4, TIM_IT_Update, DISABLE);
-
-	TIM_Cmd(TIM4, DISABLE);
-*/
 }
 
 void System::StartTimers() {
-//	TIM_Cmd(TIM4, ENABLE);
-//	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE); //FSK
 
 	SysTick_Config(F_CPU / 1000);
 }

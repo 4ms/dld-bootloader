@@ -36,13 +36,11 @@
 #include "flash_programming.h"
 #include "system_clock.h"
 
-//#include "encoding/qpsk/packet_decoder.h"
-//#include "encoding/qpsk/demodulator.h"
 #include "encoding/fsk/packet_decoder.h"
 #include "encoding/fsk/demodulator.h"
 
 extern "C" {
-#include <stddef.h> /* size_t */
+#include <stddef.h> 
 #include "dig_inouts.h"
 #include "codec.h"
 #include "i2s.h"
@@ -56,20 +54,15 @@ do {							\
 
 }
 
-using namespace smr;
 using namespace stmlib;
 using namespace stm_audio_bootloader;
 
-
 const float kSampleRate = 48000.0;
-//const float kModulationRate = 6000.0; //QPSK 6000
-//const float kBitRate = 12000.0; //QPSK 12000
 uint32_t kStartExecutionAddress =		0x08008000;
 uint32_t kStartReceiveAddress = 		0x08080000;
 uint32_t EndOfMemory =					0x080FFFFC;
 
 extern "C" {
-
 void HardFault_Handler(void) { while (1); }
 void MemManage_Handler(void) { while (1); }
 void BusFault_Handler(void) { while (1); }
@@ -78,27 +71,29 @@ void NMI_Handler(void) { }
 void SVC_Handler(void) { }
 void DebugMon_Handler(void) { }
 void PendSV_Handler(void) { }
-
 }
-System sys;
+
+smr::System sys;
 PacketDecoder decoder;
 Demodulator demodulator;
 
 uint16_t packet_index;
 uint16_t old_packet_index=0;
-uint8_t slider_i=0;
 
 bool g_error;
 
 enum UiState {
-  UI_STATE_WAITING,
-  UI_STATE_RECEIVING,
-  UI_STATE_ERROR,
-  UI_STATE_WRITING
+	UI_STATE_WAITING,
+	UI_STATE_RECEIVING,
+	UI_STATE_ERROR,
+	UI_STATE_WRITING
 };
 volatile UiState ui_state;
 
-extern "C" {
+uint16_t manual_exit_primed;
+bool exit_updater;
+
+//extern "C" {
 
 inline void *memcpy(void *dest, const void *src, size_t n)
 {
@@ -108,7 +103,6 @@ inline void *memcpy(void *dest, const void *src, size_t n)
         *dp++ = *sp++;
     return dest;
 }
-
 
 void update_LEDs(void){
 	static uint16_t dly=0;
@@ -124,17 +118,6 @@ void update_LEDs(void){
 			LED_OVLD1_ON;
 		}
 
-		/*
-		if (packet_index>old_packet_index){
-			old_packet_index=packet_index;
-
-			if (pck_ctr)
-				LED_OVLD2_ON;
-			else
-				LED_OVLD2_OFF;
-
-			pck_ctr=1-pck_ctr;
-		}*/
 	} else if (ui_state == UI_STATE_WRITING){
 
 		if (dly++>400){
@@ -147,25 +130,19 @@ void update_LEDs(void){
 
 	} else if (ui_state == UI_STATE_WAITING){
 
-
 		if (dly==(fade_speed>>1)){
 			LED_INF1_ON;
 			LED_OVLD2_ON;
-
 		}
 		if (dly++==fade_speed) {dly=0;
 			LED_INF1_OFF;
 		}
-
 	}
-
 }
 
-uint16_t State=0;
-uint16_t manual_exit_primed;
-bool exit_updater;
 
 void check_button(void){
+	static uint16_t State=0;
 	uint16_t t;
 
 	//Depressed adds a 0, released adds a 1
@@ -183,15 +160,16 @@ void check_button(void){
 
 }
 
+extern "C" {
+
 void SysTick_Handler() {
 	system_clock.Tick();  // Tick global ms counter.
 	update_LEDs();
 	check_button();
 }
 
-uint16_t discard_samples = 8000;
-
 void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size){
+	static uint16_t discard_samples = 8000;
 	bool sample;
 	static bool last_sample=false;
 	int32_t t;
@@ -251,8 +229,7 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 
 }
 
-
-}
+} //extern C
 
 static uint32_t current_address;
 static uint32_t kSectorBaseAddress[] = {
@@ -346,15 +323,13 @@ void init_audio_in(){
 }
 
 void Init() {
-	sys.Init((F_CPU / (2*kSampleRate ))- 1, false);
+	sys.Init(false);
 	system_clock.Init();
 	init_dig_inouts();
 }
 
 
 void InitializeReception() {
-
-
 	//FSK
 
 	decoder.Init();
@@ -363,21 +338,9 @@ void InitializeReception() {
 	demodulator.Init(16, 8, 4);
 	demodulator.Sync();
 
-	//QPSK
-	/*
-	decoder.Init(20000);
-	demodulator.Init(
-	 kModulationRate / kSampleRate * 4294967296.0,
-	 kSampleRate / kModulationRate,
-	 2.0 * kSampleRate / kBitRate);
-	demodulator.SyncCarrier(true);
-	decoder.Reset();
-*/
-
 	current_address = kStartReceiveAddress;
 	packet_index = 0;
 	old_packet_index = 0;
-	slider_i = 0;
 	ui_state = UI_STATE_WAITING;
 }
 
@@ -392,17 +355,15 @@ void InitializeReception() {
 int main(void) {
 	uint32_t symbols_processed=0;
 	uint32_t dly=0, button_debounce=0;
-	uint8_t i;
 
 	delay(25000);
 
-//	InitializeReception(); //QPSK
 	Init();
 	InitializeReception(); //FSK
 
 	LED_OVLD2_OFF;
-
 	LED_OVLD1_ON;
+
 	dly=32000;
 	while(dly--){
 		if (BOOTLOADER_BUTTON) button_debounce++;
@@ -410,7 +371,6 @@ int main(void) {
 	}
 	exit_updater = (button_debounce>15000) ? 0 : 1;
 	LED_OVLD1_OFF;
-
 
 	if (!exit_updater){
 		LED_INF1_ON;
@@ -434,19 +394,6 @@ int main(void) {
 	while (!exit_updater) {
 		g_error = false;
 
-
-		//QPSK
-		/*
-		if (demodulator.state() == DEMODULATOR_STATE_OVERFLOW){
-			g_error = true;
-			LED_ON(LED_LOCK[2]);
-			LED_ON(LED_LOCK[3]);
-		}else{
-			demodulator.ProcessAtLeast(32);
-		}
-		 */
-
-
 		while (demodulator.available() && !g_error && !exit_updater) {
 			uint8_t symbol = demodulator.NextSymbol();
 			PacketDecoderState state = decoder.ProcessSymbol(symbol);
@@ -463,10 +410,8 @@ int main(void) {
 						ProgramPage(recv_buffer, kBlockSize);
 						decoder.Reset();
 						demodulator.Sync(); //FSK
-						//demodulator.SyncCarrier(false);//QPSK
 					} else {
 						decoder.Reset(); //FSK
-						//demodulator.SyncDecision();//QPSK
 					}
 				}
 				break;
@@ -484,7 +429,6 @@ int main(void) {
 				case PACKET_DECODER_STATE_END_OF_TRANSMISSION:
 					exit_updater = true;
 
-					//Copy from Receive buffer to Execution memory
 					CopyMemory(kStartReceiveAddress, kStartExecutionAddress, (current_address-kStartReceiveAddress));
 					break;
 
@@ -515,13 +459,6 @@ int main(void) {
 
 	Uninitialize();
 
-	// while (1) {
-	// 	LED_INF1_OFF;
-	// 	delay(1000);
-	// 	Uninitialize();
-	// 	LED_INF1_ON;
-	// }
-
 	JumpTo(kStartExecutionAddress);
-
 }
+

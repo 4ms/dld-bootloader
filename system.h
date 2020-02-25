@@ -43,7 +43,7 @@ class System {
   System() { }
   ~System() { }
   
-  void Init(uint32_t timer_period, bool application);
+  void Init(bool application);
   void StartTimers();
  
  private:
