@@ -514,6 +514,14 @@ int main(void) {
 	delay(25000);
 
 	Uninitialize();
+
+	// while (1) {
+	// 	LED_INF1_OFF;
+	// 	delay(1000);
+	// 	Uninitialize();
+	// 	LED_INF1_ON;
+	// }
+
 	JumpTo(kStartExecutionAddress);
 
 }

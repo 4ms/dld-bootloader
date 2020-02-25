@@ -4,7 +4,7 @@
 
 #include "i2s.h"
 #include "codec.h"
-#include "inouts.h"
+//#include "inouts.h"
 
 #define codec_BUFF_LEN 8
 //#define codec_BUFF_LEN 128

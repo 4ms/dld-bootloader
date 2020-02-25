@@ -1,16 +1,16 @@
 /**
   ******************************************************************************
-  * @file      startup_stm32f429_439xx.s
+  * @file      startup_stm32f427_437xx.s
   * @author    MCD Application Team
   * @version   V1.3.0
   * @date      08-November-2013
-  * @brief     STM32F429xx/439xx Devices vector table for RIDE7 toolchain.          
+  * @brief     STM32F427xx/437xx Devices vector table for RIDE7 toolchain.          
   *            This module performs:
   *                - Set the initial SP
   *                - Set the initial PC == Reset_Handler,
   *                - Set the vector table entries with the exceptions ISR address
   *                - Configure the clock system and the external SRAM mounted on 
-  *                  STM324x9I-EVAL board to be used as data memory (optional, 
+  *                  STM324x7I-EVAL board to be used as data memory (optional, 
   *                  to be enabled by user)
   *                - Branches to main in the C library (which eventually
   *                  calls main()).
@@ -37,8 +37,8 @@
   */
     
   .syntax unified
-  .cpu cortex-m3
-  .fpu softvfp
+  .cpu cortex-m4
+  .fpu fpv4-sp-d16
   .thumb
 
 .global  g_pfnVectors
