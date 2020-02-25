@@ -1,10 +1,11 @@
 def Settings( **kwargs ):
   return {
-    'flags': [ '-x', 'c', 
+    'flags': [ '-x', 'c++', 
     '-Wall', '-Wextra', '-Werror',
     '-DARM_MATH_CM4', 
     '-DUSE_STDPERIPH_DRIVER',
     '-D\'__FPU_PRESENT=1\'',
+    '-D\'F_CPU=168000000L\'',
     '-DSTM32F427X',
     '-I', '/usr/local/Cellar/arm-none-eabi-gcc/8-2018-q4-major/gcc/arm-none-eabi/include/',
     '-I', '/usr/local/Cellar/arm-none-eabi-gcc/8-2018-q4-major/gcc/arm-none-eabi/include/sys/',
