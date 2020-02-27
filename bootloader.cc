@@ -93,7 +93,7 @@ volatile UiState ui_state;
 uint16_t manual_exit_primed;
 bool exit_updater;
 
-//extern "C" {
+extern "C" {
 
 inline void *memcpy(void *dest, const void *src, size_t n)
 {
@@ -107,7 +107,6 @@ inline void *memcpy(void *dest, const void *src, size_t n)
 void update_LEDs(void){
 	static uint16_t dly=0;
 	uint16_t fade_speed=800;
-	uint8_t pck_ctr=0;
 
 	if (ui_state == UI_STATE_RECEIVING){
 		if (dly++>400){
@@ -159,8 +158,6 @@ void check_button(void){
 	}
 
 }
-
-extern "C" {
 
 void SysTick_Handler() {
 	system_clock.Tick();  // Tick global ms counter.
@@ -253,7 +250,6 @@ uint8_t recv_buffer[kBlockSize];
 
 inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 
-	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
 				  FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR);
 
@@ -313,7 +309,7 @@ void init_audio_in(){
 
 	Codec_Init_Reset_GPIO();
 	Codec_Deinit();
-	do {register unsigned int i; for (i = 0; i < 1000000; ++i) __asm__ __volatile__ ("nop\n\t":::"memory");} while (0);
+	do {unsigned int i; for (i = 0; i < 1000000; ++i) __asm__ __volatile__ ("nop\n\t":::"memory");} while (0);
 
 	//QPSK or Codec
 	Codec_Init(48000);
@@ -457,7 +453,8 @@ int main(void) {
 	Codec_Deinit();
 	delay(25000);
 
-	Uninitialize();
+	reset_buses();
+	reset_RCC();
 
 	JumpTo(kStartExecutionAddress);
 }
