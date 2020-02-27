@@ -39,7 +39,9 @@ F_CPU = 168000000L
 
 FLAGS = -g2 -O0 $(ARCHFLAGS)
 FLAGS += -I. -DARM_MATH_CM4 -D'__FPU_PRESENT=1' -DF_CPU=$(F_CPU)
-FLAGS += -fsingle-precision-constant -Wdouble-promotion 
+FLAGS += -DSTM32F427_437xx
+FLAGS += -DUSE_STDPERIPH_DRIVER
+FLAGS += -fsingle-precision-constant -Wdouble-promotion
 
 
 CFLAGS = -std=c99

@@ -26,8 +26,8 @@
 //
 // System-level initialization.
 
-#ifndef BRAIDS_DRIVERS_SYSTEM_H_
-#define BRAIDS_DRIVERS_SYSTEM_H_
+#ifndef DRIVERS_SYSTEM_H_
+#define DRIVERS_SYSTEM_H_
 
 extern "C" {
 #include "stm32f4xx.h"
@@ -42,7 +42,7 @@ class System {
  public:
   System() { }
   ~System() { }
-  
+
   void Init(bool application);
   void StartTimers();
  

@@ -1,6 +1,6 @@
-// Copyright 2012 Olivier Gillet.
+// Copyright 2020 Dan Green
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Dan Green (danngreen1@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -8,7 +8,7 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
 // 
@@ -23,63 +23,119 @@
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
-//
-// Function for jumping from bootloader code to application code.
 
 #include "bootloader_utils.h"
-
 #include "stm32f4xx_conf.h"
 
-namespace stmlib {
+void reset_buses() {
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOA, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOB, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOC, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOD, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOE, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOF, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOG, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOG, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOI, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOJ, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_GPIOK, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_CRC, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA1, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA2, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA2D, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_ETH_MAC, DISABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_OTG_HS, DISABLE);
+#ifdef RCC_AHB1Periph_RNG
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_RNG, DISABLE);
+#endif
+	RCC_AHB2PeriphResetCmd(RCC_AHB2Periph_DCMI, DISABLE);
+	RCC_AHB2PeriphResetCmd(RCC_AHB2Periph_CRYP, DISABLE);
+	RCC_AHB2PeriphResetCmd(RCC_AHB2Periph_HASH, DISABLE);
+	RCC_AHB2PeriphResetCmd(RCC_AHB2Periph_RNG, DISABLE);
 
-#define u32 uint32_t
-#define vu32 volatile uint32_t
+#ifdef RCC_AHB3Periph_FMC
+	RCC_AHB3PeriphResetCmd(RCC_AHB3Periph_FMC, DISABLE);
+#endif
+#ifdef RCC_AHB3Periph_FSMC
+	RCC_AHB3PeriphResetCmd(RCC_AHB3Periph_FSMC, DISABLE);
+#endif
+#ifdef RCC_AHB3Periph_QSPI
+	RCC_AHB3PeriphResetCmd(RCC_AHB3Periph_QSPI, DISABLE);
+#endif
 
-#define SET_REG(addr,val) do { *(vu32*)(addr)=val; } while(0)
-#define GET_REG(addr)     (*(vu32*)(addr))
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM3, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM4, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM5, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM6, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM7, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM12, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM13, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM14, DISABLE);
+#ifdef RCC_APB1Periph_LPTIM1
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_LPTIM1, DISABLE);
+#endif
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_WWDG, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3, DISABLE);
+#ifdef RCC_APB1Periph_SPDIF
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPDIF, DISABLE);
+#endif
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_USART2, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_USART3, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_UART4, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_UART5, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C1, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C2, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C3, DISABLE);
+#ifdef RCC_APB1Periph_FMPI2C1
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_FMPI2C1, DISABLE);
+#endif
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_CAN1, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_CAN2, DISABLE);
+#ifdef RCC_APB1Periph_CEC
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_CEC, DISABLE);
+#endif
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_PWR, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_DAC, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_UART7, DISABLE);
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_UART8, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_TIM1, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_TIM8, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_USART1, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_USART6, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC1, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC2, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_ADC3, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SDIO, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI4, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SYSCFG, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_TIM9, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_TIM10, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_TIM11, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI5, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI6, DISABLE);
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SAI1, DISABLE);
+#ifdef RCC_APB2Periph_SAI2
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_SAI2, DISABLE);
+#endif
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_LTDC, DISABLE);
+#ifdef RCC_APB2Periph_DSI
+	RCC_APB2PeriphResetCmd(RCC_APB2Periph_DSI, DISABLE);
+#endif
+}
 
-#define RCC_CR      RCC
-#define RCC_CFGR    (RCC + 0x04)
-#define RCC_CIR     (RCC + 0x08)
-#define RCC_AHBENR  (RCC + 0x14)
-#define RCC_APB2ENR (RCC + 0x18)
-#define RCC_APB1ENR (RCC + 0x1C)
+void reset_RCC() {
+  //Clear the CTRL bits that SysTick_Config() set
+  SysTick->CTRL &= ~(SysTick_CTRL_CLKSOURCE_Msk |
+                     SysTick_CTRL_TICKINT_Msk |
+                     SysTick_CTRL_ENABLE_Msk);
 
-#define SCS      0xE000E000
-#define STK      (SCS+0x10)
-#define STK_CTRL (STK+0x00)
-#define RCC_CR      RCC
+  RCC_DeInit();
 
-typedef struct {
-    vu32 ISER[2];
-    u32  RESERVED0[30];
-    vu32 ICER[2];
-    u32  RSERVED1[30];
-    vu32 ISPR[2];
-    u32  RESERVED2[30];
-    vu32 ICPR[2];
-    u32  RESERVED3[30];
-    vu32 IABR[2];
-    u32  RESERVED4[62];
-    vu32 IPR[15];
-} NVIC_TypeDef;
-
-void Uninitialize() {
-  // Stop NVIC.
-  NVIC_TypeDef *rNVIC = (NVIC_TypeDef *) NVIC_BASE;
-  rNVIC->ICER[0] = 0xFFFFFFFF;
-  rNVIC->ICER[1] = 0xFFFFFFFF;
-  rNVIC->ICPR[0] = 0xFFFFFFFF;
-  rNVIC->ICPR[1] = 0xFFFFFFFF;
-  SET_REG(STK_CTRL, 0x04);
-
-  // System reset.
-  SET_REG(RCC_CR, GET_REG(RCC_CR)     | 0x00000001); //ok
-  SET_REG(RCC_CFGR, GET_REG(RCC_CFGR) & 0xF8FF0000); //writing to PLLCFGR
-  SET_REG(RCC_CR, GET_REG(RCC_CR)     & 0xFEF6FFFF); //ok
-  SET_REG(RCC_CR, GET_REG(RCC_CR)     & 0xFFFBFFFF); //ok
-  SET_REG(RCC_CFGR, GET_REG(RCC_CFGR) & 0xFF80FFFF); //writing to PLLCFGR
-  SET_REG(RCC_CIR, 0x00000000); //writing to CFGR
+  //Simplification of SystemCoreClockUpdate()
+//  SystemCoreClock = HSI_VALUE;
 }
 
 typedef void (*EntryPoint)(void);
@@ -91,4 +147,3 @@ void JumpTo(uint32_t address) {
   application();
 }
 
-}  // namespace stmlib
