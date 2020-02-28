@@ -40,7 +40,7 @@
 #include "encoding/fsk/demodulator.h"
 
 extern "C" {
-#include <stddef.h> 
+#include <stddef.h>
 #include "dig_inouts.h"
 #include "codec.h"
 #include "i2s.h"
@@ -156,7 +156,6 @@ void check_button(void){
 		if (packet_index==0 && manual_exit_primed==1)
 			exit_updater=1;
 	}
-
 }
 
 void SysTick_Handler() {
@@ -170,7 +169,6 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 	bool sample;
 	static bool last_sample=false;
 	int32_t t;
-	//int32_t sample;
 
 	while (size) {
 		size-=4;
@@ -195,7 +193,6 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 		}
 		last_sample=sample;
 
-
 		if (sample) CLKOUT_ON;
 		else CLKOUT_OFF;
 
@@ -204,7 +201,6 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 		} else {
 			--discard_samples;
 		}
-
 
 		if (ui_state == UI_STATE_ERROR)
 		{
@@ -220,39 +216,35 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 			*output++=t;
 			*output++=0;
 		}
-
-
 	}
-
 }
 
 } //extern C
 
 static uint32_t current_address;
 static uint32_t kSectorBaseAddress[] = {
-  0x08000000,
-  0x08004000,
-  0x08008000,
-  0x0800C000,
-  0x08010000,
-  0x08020000,
-  0x08040000,
-  0x08060000,
-  0x08080000,
-  0x080A0000,
-  0x080C0000,
-  0x080E0000
+	0x08000000,
+	0x08004000,
+	0x08008000,
+	0x0800C000,
+	0x08010000,
+	0x08020000,
+	0x08040000,
+	0x08060000,
+	0x08080000,
+	0x080A0000,
+	0x080C0000,
+	0x080E0000
 };
+
 const uint32_t kBlockSize = 16384;
 const uint16_t kPacketsPerBlock = kBlockSize / kPacketSize;
 uint8_t recv_buffer[kBlockSize];
 
-
 inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 
-	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
-				  FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR);
-
+	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | \
+					FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR);
 
 	for (size_t written = 0; written < size; written += 4) {
 
@@ -263,7 +255,6 @@ inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 				LED_INF1_OFF;	LED_INF2_OFF;	LED_PINGBUT_OFF;	LED_OVLD1_OFF;	LED_OVLD2_OFF;
 				FLASH_EraseSector(i * 8, VoltageRange_3);
 				LED_INF1_ON;	LED_INF2_ON;	LED_PINGBUT_ON;	LED_OVLD1_ON;	LED_OVLD2_ON;
-
 			}
 		}
 
@@ -277,7 +268,6 @@ inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 		src_addr += 4;
 		dst_addr += 4;
 	}
-
 }
 
 
@@ -349,8 +339,12 @@ void InitializeReception() {
 		)
 
 int main(void) {
+    NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0000);
+
 	uint32_t symbols_processed=0;
 	uint32_t dly=0, button_debounce=0;
+
+	bool codec_did_init = false;
 
 	delay(25000);
 
@@ -372,9 +366,11 @@ int main(void) {
 		LED_INF1_ON;
 		LED_INF2_ON;
 		init_audio_in(); //QPSK or Codec
+		codec_did_init = true;
 		sys.StartTimers();
 	}
 
+	/*
 	LED_OVLD2_ON;
 	dly=4000;
 	while(dly--){
@@ -382,6 +378,7 @@ int main(void) {
 		else button_debounce=0;
 	}
 	exit_updater = (button_debounce>2000) ? 0 : 1;
+	*/
 
 	manual_exit_primed=0;
 	LED_INF2_OFF;
@@ -449,8 +446,10 @@ int main(void) {
 
 	LED_INF1_OFF;	LED_INF2_OFF;	LED_PINGBUT_OFF;	LED_OVLD1_OFF;	LED_OVLD2_OFF;
 
-	Codec_PowerDown();
-	Codec_Deinit();
+	if (codec_did_init) {
+		Codec_PowerDown();
+		Codec_Deinit();
+	}
 	delay(25000);
 
 	reset_buses();
