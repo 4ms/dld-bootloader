@@ -1,13 +1,12 @@
 PROJECTNAME = bootloader
 
-COMBONAME = ../DLD/build/combo
+COMBO = ../DLD/build/combo
 MAINAPP_DIR = ../DLD/
 MAINAPP_HEX = ../DLD/build/main.hex
 
 BUILDDIR = build
 
 PROJECT = $(BUILDDIR)/$(PROJECTNAME)
-COMBO = $(BUILDDIR)/$(COMBONAME) 
 
 STARTUP = startup_stm32f427_437xx.s
 
