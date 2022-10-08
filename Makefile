@@ -1,6 +1,44 @@
 PROJECTNAME = bootloader
 
-COMBO = ../DLD/build/combo
+ifeq ($(TARGET),)
+$(warning Specify TARGET=f446 or TARGET=f427. Assuming f446)
+endif
+
+TARGET ?= f446
+
+ifeq ($(TARGET),f427)
+STARTUP = startup_stm32f427.s
+SYSTEM = system_stm32f4xx.c
+LOADFILE = stm32f429.ld
+DEVICE = stm32/device/f427
+CORE = stm32/core
+periphfiles = stm32f4xx_flash.c \
+			stm32f4xx_gpio.c \
+			stm32f4xx_rcc.c \
+			stm32f4xx_tim.c \
+			stm32f4xx_i2c.c \
+			stm32f4xx_spi.c \
+			stm32f4xx_dma.c 
+PERIPH = $(addprefix stm32/periph/stdperiph/,$(periphfiles))
+BUILDDIR = build/f427
+# target_incs = -Iinc/f427
+# target_srcs = $(wildcard src/f427/*.c)
+# target_defs = -D'__FPU_PRESENT=1' -DUSE_STDPERIPH_DRIVER
+
+else ifeq ($(TARGET),f446)
+STARTUP = startup_stm32f446xx.s
+SYSTEM = system_stm32f4xx.c
+LOADFILE = STM32F446ZCHx_FLASH.ld
+DEVICE = stm32/device/f446
+CORE = stm32/core
+PERIPH = $(wildcard stm32/periph/STM32F4xx_HAL_Driver/src/*.c)
+BUILDDIR = build/f446
+# target_incs = -Iinc/f446
+# target_srcs = $(wildcard src/f446/*.c)
+# target_defs = -DSTM32F446xx -DUSE_HAL_DRIVER
+endif
+
+COMBO = ../DLD/build/$(TARGET)/combo
 MAINAPP_DIR = ../DLD/
 MAINAPP_HEX = ../DLD/build/main.hex
 
@@ -8,26 +46,25 @@ BUILDDIR = build
 
 PROJECT = $(BUILDDIR)/$(PROJECTNAME)
 
-STARTUP = startup_stm32f427_437xx.s
 
-SOURCES = 	$(STARTUP) \
-			system_stm32f4xx.c \
+SOURCES = 	$(DEVICE)/src/$(STARTUP) \
+			$(DEVICE)/src/$(SYSTEM) \
 			bootloader.cc \
 			dig_inouts.c \
 			bootloader_utils.cc \
 			system_clock.cc \
 			system.cc \
 			misc.c \
-			stm32f4xx_flash.c \
-			stm32f4xx_gpio.c \
-			stm32f4xx_rcc.c \
-			stm32f4xx_tim.c \
-			stm32f4xx_i2c.c \
-			stm32f4xx_spi.c \
-			stm32f4xx_dma.c \
+			$(PERIPH) \
 			codec.c \
 			i2s.c \
 			encoding/fsk/packet_decoder.cc 
+
+INCLUDES += -I$(DEVICE)/include \
+			-I$(CORE)/include \
+			-I$(PERIPH)/include \
+			-I$(PERIPH)/Inc \
+			$(target_incs)
 		
 OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
 
