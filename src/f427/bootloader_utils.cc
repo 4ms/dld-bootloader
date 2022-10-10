@@ -11,7 +11,7 @@
 //
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -127,23 +127,20 @@ void reset_buses() {
 }
 
 void reset_RCC() {
-  //Clear the CTRL bits that SysTick_Config() set
-  SysTick->CTRL &= ~(SysTick_CTRL_CLKSOURCE_Msk |
-                     SysTick_CTRL_TICKINT_Msk |
-                     SysTick_CTRL_ENABLE_Msk);
+	//Clear the CTRL bits that SysTick_Config() set
+	SysTick->CTRL &= ~(SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk);
 
-  RCC_DeInit();
+	RCC_DeInit();
 
-  //Simplification of SystemCoreClockUpdate()
-//  SystemCoreClock = HSI_VALUE;
+	//Simplification of SystemCoreClockUpdate()
+	//  SystemCoreClock = HSI_VALUE;
 }
 
 typedef void (*EntryPoint)(void);
 
 void JumpTo(uint32_t address) {
-  uint32_t application_address = *(__IO uint32_t*)(address + 4);
-  EntryPoint application = (EntryPoint)(application_address);
-  __set_MSP(*(__IO uint32_t*)address);
-  application();
+	uint32_t application_address = *(__IO uint32_t *)(address + 4);
+	EntryPoint application = (EntryPoint)(application_address);
+	__set_MSP(*(__IO uint32_t *)address);
+	application();
 }
-
