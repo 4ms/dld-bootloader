@@ -48,8 +48,6 @@ MAINAPP_DIR = ../DLD/
 COMBO = ../DLD/build/$(TARGET)/combo
 MAINAPP_HEX = ../DLD/build/$(TARGET)/main.hex
 
-BUILDDIR = build
-
 PROJECT = $(BUILDDIR)/$(PROJECTNAME)
 
 SOURCES = 	$(DEVICE)/src/$(STARTUP) \
