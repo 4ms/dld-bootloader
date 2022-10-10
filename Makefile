@@ -75,7 +75,8 @@ INCLUDES += -I$(DEVICE)/include \
 OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
 
 
-ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4 -mfloat-abi=soft -mfpu=fpv4-sp-d16 
+ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4 
+ARCHFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 
 
 FLAGS = -g2 -Os $(ARCHFLAGS)
 FLAGS += -DARM_MATH_CM4 -D'__FPU_PRESENT=1' -DF_CPU=$(F_CPU)
@@ -97,7 +98,7 @@ CXXFLAGS += -fno-threadsafe-statics
 CXXFLAGS += $(FLAGS)
 
 AFLAGS  = $(ARCHFLAGS)
-LFLAGS  = -Wl,-Map=$(PROJECT).map -Wl,--gc-sections -T $(LDSCRIPT)
+LFLAGS  = $(CFLAGS) -Wl,-Map=$(PROJECT).map -Wl,--gc-sections -T $(LDSCRIPT)
 
 # Executables
 
