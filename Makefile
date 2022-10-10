@@ -24,7 +24,7 @@ PERIPH = $(addprefix  $(PERIPHDIR)/src/,$(periphfiles))
 BUILDDIR = build/f427
 LDSCRIPT = $(DEVICE)/stm32f429xx.ld
 target_incs = -Isrc/f427
-target_srcs = $(wildcard src/f427/*.c) src/f427/flash.cc src/f427/bootloader_utils.cc
+target_srcs = $(wildcard src/f427/*.c) $(wildcard src/f427/*.cc)
 target_defs = -DUSE_STDPERIPH_DRIVER \
 			  -DSTM32F427_437xx \
 			  -DHSE_VALUE=16000000 \
@@ -42,7 +42,7 @@ PERIPH = $(wildcard $(PERIPHDIR)/src/*.c)
 BUILDDIR = build/f446
 LDSCRIPT = $(DEVICE)/STM32F446ZCHx_FLASH.ld
 target_incs = -Isrc/f446
-target_srcs = $(wildcard src/f446/*.c)
+target_srcs = $(wildcard src/f446/*.c) $(wildcard src/f446/*.cc)
 target_defs = -DSTM32F446xx -DUSE_HAL_DRIVER
 endif
 
@@ -57,12 +57,9 @@ SOURCES = 	$(DEVICE)/src/$(STARTUP) \
 			$(PERIPH) \
 			$(target_srcs) \
 			bootloader.cc \
-			dig_inouts.c \
 			system_clock.cc \
 			system.cc \
 			misc.c \
-			codec.c \
-			i2s.c \
 			encoding/fsk/packet_decoder.cc 
 
 INCLUDES += -I$(DEVICE)/include \
