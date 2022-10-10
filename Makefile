@@ -24,7 +24,7 @@ PERIPH = $(addprefix  $(PERIPHDIR)/src/,$(periphfiles))
 BUILDDIR = build/f427
 LDSCRIPT = $(DEVICE)/stm32f429xx.ld
 target_incs = -Isrc/f427
-target_srcs = $(wildcard src/f427/*.c) src/f427/flash.cc
+target_srcs = $(wildcard src/f427/*.c) src/f427/flash.cc src/f427/bootloader_utils.cc
 target_defs = -DUSE_STDPERIPH_DRIVER \
 			  -DSTM32F427_437xx \
 			  -DHSE_VALUE=16000000 \
@@ -58,7 +58,6 @@ SOURCES = 	$(DEVICE)/src/$(STARTUP) \
 			$(target_srcs) \
 			bootloader.cc \
 			dig_inouts.c \
-			bootloader_utils.cc \
 			system_clock.cc \
 			system.cc \
 			misc.c \
