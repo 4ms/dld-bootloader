@@ -71,6 +71,7 @@ INCLUDES += -I$(DEVICE)/include \
 			$(target_incs)
 		
 OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
+DEPS = $(OBJECTS:.o=.d)
 
 
 ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4 
@@ -98,6 +99,8 @@ CXXFLAGS += $(FLAGS)
 AFLAGS  = $(ARCHFLAGS)
 LFLAGS  = $(CFLAGS) -Wl,-Map=$(PROJECT).map -Wl,--gc-sections -T $(LDSCRIPT)
 
+DEPFLAGS = -MMD -MP -MF $(BUILDDIR)/$(basename $<).d
+
 # Executables
 
 ARCH 	= arm-none-eabi
@@ -111,10 +114,9 @@ GDB 	= $(ARCH)-gdb
 SZ 		= $(ARCH)-size
 FLASH = st-flash
 
-DEPFLAGS = -MMD -MP -MF $(BUILDDIR)/$(basename $<).d
-
 # Targets
-all: $(PROJECT).bin
+#
+all: Makefile $(PROJECT).bin
 
 clean:
 	-rm -rf build/
@@ -146,27 +148,48 @@ $(PROJECT).bin: $(PROJECT).elf
 	ls -l $(PROJECT).elf $(PROJECT).bin $(PROJECT).hex
 
 $(PROJECT).elf: $(OBJECTS) $(LDSCRIPT)
-	$(LD) $(LFLAGS) -o $(PROJECT).elf $(OBJECTS)
+	@echo "Linking..."
+	@$(LD) $(LFLAGS) -o $@ $(OBJECTS)
 
 archive: $(COMBO).bin
 	zip -r ../DLD/firmwares/dld-$(shell date +'%Y%m%d-%H%M%S').zip ../DLD/* -x ../DLD/firmwares/\* ../DLD/.\*
 
-$(BUILDDIR)/%.o: %.cc
-	mkdir -p $(dir $@)
-	$(CXX) -c $(CXXFLAGS) $< -o $@
-
-$(BUILDDIR)/%.o: %.c 
-	mkdir -p $(dir $@)
+$(BUILDDIR)/%.o: %.c $(BUILDDIR)/%.d
+	@mkdir -p $(dir $@)
 	@echo "Compiling:" $<
-	$(CC) -c $(CFLAGS) $< -o $@
+	@$(CC) -c $(DEPFLAGS) $(CFLAGS) $< -o $@
 
-# $(BUILDDIR)/%.o: %.c $(BUILDDIR)/%.d
-# 	@mkdir -p $(dir $@)
-# 	@echo "Compiling:" $<
-# 	$(CC) -c $(DEPFLAGS) $(CFLAGS) $< -o $@
+$(BUILDDIR)/%.o: %.cc $(BUILDDIR)/%.d
+	@mkdir -p $(dir $@)
+	@echo "Compiling:" $<
+	@$(CXX) -c $(DEPFLAGS) $(CXXFLAGS) $< -o $@
 
+$(BUILDDIR)/%.o: %.cpp $(BUILDDIR)/%.d
+	@mkdir -p $(dir $@)
+	@echo "Compiling:" $<
+	@$(CXX) -c $(DEPFLAGS) $(CXXFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: %.s
-	mkdir -p $(dir $@)
-	$(AS) $(AFLAGS) $< -o $@ > $(addprefix $(BUILDDIR)/, $(addsuffix .lst, $(basename $<)))
+	@mkdir -p $(dir $@)
+	@echo "Compiling:" $<
+	@$(AS) $(AFLAGS) $< -o $@ > $(addprefix $(BUILDDIR)/, $(addsuffix .lst, $(basename $<)))
+
+%.d: ;
+
+ifneq "$(MAKECMDGOALS)" "clean"
+-include $(DEPS)
+endif
+
+# $(BUILDDIR)/%.o: %.cc
+# 	mkdir -p $(dir $@)
+# 	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+# $(BUILDDIR)/%.o: %.c 
+# 	mkdir -p $(dir $@)
+# 	@echo "Compiling:" $<
+# 	$(CC) -c $(CFLAGS) $< -o $@
+
+# $(BUILDDIR)/%.o: %.s
+# 	mkdir -p $(dir $@)
+# 	$(AS) $(AFLAGS) $< -o $@ > $(addprefix $(BUILDDIR)/, $(addsuffix .lst, $(basename $<)))
 
