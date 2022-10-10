@@ -263,15 +263,12 @@ void init_audio_in() {
 
 	Codec_Init_Reset_GPIO();
 	Codec_Deinit();
-	do {
-		unsigned int i;
-		for (i = 0; i < 1000000; ++i)
-			__asm__ __volatile__("nop\n\t" ::: "memory");
-	} while (0);
+	delay(1000000);
 
 	//QPSK or Codec
 	Codec_Init(48000);
 
+	//TODO: Arch-specific
 	NVIC_EnableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
 }
 
@@ -299,6 +296,7 @@ void InitializeReception() {
 #define BOOTLOADER_BUTTON (REVSW_CH1 && REVSW_CH2 && !INF1BUT && !INF2BUT && PINGBUT)
 
 void main(void) {
+	//TODO: Arch-specific:
 	NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0000);
 
 	uint32_t symbols_processed = 0;
@@ -426,6 +424,7 @@ void main(void) {
 	}
 	delay(25000);
 
+	//TODO: Arch-specific
 	reset_buses();
 	reset_RCC();
 
