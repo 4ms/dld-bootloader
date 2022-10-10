@@ -25,8 +25,11 @@ BUILDDIR = build/f427
 LDSCRIPT = $(DEVICE)/stm32f429xx.ld
 target_incs = -Isrc/f427
 target_srcs = $(wildcard src/f427/*.c)
-target_defs = -DUSE_STDPERIPH_DRIVER -DSTM32F427_437xx -D'HSE_VALUE=16000000'
-F_CPU = 168000000L
+target_defs = -DUSE_STDPERIPH_DRIVER \
+			  -DSTM32F427_437xx \
+			  -DHSE_VALUE=16000000 \
+			  -D'__FPU_PRESENT=1'  \
+			  -DF_CPU=168000000L
 
 else ifeq ($(TARGET),f446)
 STARTUP = startup_stm32f446xx.s
@@ -41,7 +44,6 @@ LDSCRIPT = $(DEVICE)/STM32F446ZCHx_FLASH.ld
 target_incs = -Isrc/f446
 target_srcs = $(wildcard src/f446/*.c)
 target_defs = -DSTM32F446xx -DUSE_HAL_DRIVER
-F_CPU = 180000000L
 endif
 
 MAINAPP_DIR = ../DLD/
@@ -78,7 +80,7 @@ ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4
 ARCHFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 
 
 FLAGS = -g2 -Os $(ARCHFLAGS)
-FLAGS += -DARM_MATH_CM4 -D'__FPU_PRESENT=1' -DF_CPU=$(F_CPU)
+FLAGS += -DARM_MATH_CM4 
 FLAGS += -fsingle-precision-constant -Wdouble-promotion
 FLAGS += -ffreestanding
 FLAGS += -fcommon
