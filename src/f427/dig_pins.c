@@ -2,11 +2,9 @@
  * dig_inouts.c
  */
 
+#include "dig_pins.h"
 
-#include "dig_inouts.h"
-
-
-void init_dig_inouts(void){
+void init_dig_inouts(void) {
 	GPIO_InitTypeDef gpio;
 	GPIO_StructInit(&gpio);
 
@@ -18,21 +16,25 @@ void init_dig_inouts(void){
 
 	//LEDs
 	RCC_AHB1PeriphClockCmd(LED_RCC, ENABLE);
-	gpio.GPIO_Pin = LED_OVLD1 | LED_OVLD2;	GPIO_Init(LED_GPIO, &gpio);
+	gpio.GPIO_Pin = LED_OVLD1 | LED_OVLD2;
+	GPIO_Init(LED_GPIO, &gpio);
 
 	RCC_AHB1PeriphClockCmd(PINGBUTLED_RCC, ENABLE);
-	gpio.GPIO_Pin = LED_PINGBUT_pin;	GPIO_Init(LED_PINGBUT_GPIO, &gpio);
+	gpio.GPIO_Pin = LED_PINGBUT_pin;
+	GPIO_Init(LED_PINGBUT_GPIO, &gpio);
 
 	RCC_AHB1PeriphClockCmd(INF1_BUTLED_RCC, ENABLE);
-	gpio.GPIO_Pin = LED_INF1_pin;	GPIO_Init(LED_INF1_GPIO, &gpio);
+	gpio.GPIO_Pin = LED_INF1_pin;
+	GPIO_Init(LED_INF1_GPIO, &gpio);
 
 	RCC_AHB1PeriphClockCmd(INF2_BUTLED_RCC, ENABLE);
-	gpio.GPIO_Pin = LED_INF2_pin;	GPIO_Init(LED_INF2_GPIO, &gpio);
-
+	gpio.GPIO_Pin = LED_INF2_pin;
+	GPIO_Init(LED_INF2_GPIO, &gpio);
 
 	//CLKOUT
 	RCC_AHB1PeriphClockCmd(CLKOUT_RCC, ENABLE);
-	gpio.GPIO_Pin = CLKOUT_pin;	GPIO_Init(CLKOUT_GPIO, &gpio);
+	gpio.GPIO_Pin = CLKOUT_pin;
+	GPIO_Init(CLKOUT_GPIO, &gpio);
 	CLKOUT_OFF;
 
 	//DEBUG pins
@@ -56,7 +58,7 @@ void init_dig_inouts(void){
 	gpio.GPIO_Mode = GPIO_Mode_IN;
 	gpio.GPIO_Speed = GPIO_Speed_50MHz;
 	gpio.GPIO_PuPd = GPIO_PuPd_UP;
-/*
+	/*
 	//Div/Mult switches
 	RCC_AHB1PeriphClockCmd(TIMESW_RCC, ENABLE);
 
@@ -69,15 +71,17 @@ void init_dig_inouts(void){
 	//Reverse buttons
 	RCC_AHB1PeriphClockCmd(REVSW_RCC, ENABLE);
 
-	gpio.GPIO_Pin = REV2SW_pin;	GPIO_Init(REV2SW_GPIO, &gpio);
-	gpio.GPIO_Pin = REV1SW_pin;	GPIO_Init(REV1SW_GPIO, &gpio);
-
+	gpio.GPIO_Pin = REV2SW_pin;
+	GPIO_Init(REV2SW_GPIO, &gpio);
+	gpio.GPIO_Pin = REV1SW_pin;
+	GPIO_Init(REV1SW_GPIO, &gpio);
 
 	//Ping button and jack
 	RCC_AHB1PeriphClockCmd(PING_RCC, ENABLE);
 
-	gpio.GPIO_Pin = PINGBUT_pin;	GPIO_Init(PINGBUT_GPIO, &gpio);
-/*
+	gpio.GPIO_Pin = PINGBUT_pin;
+	GPIO_Init(PINGBUT_GPIO, &gpio);
+	/*
 	gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	gpio.GPIO_Pin = PINGJACK_pin;	GPIO_Init(PINGJACK_GPIO, &gpio);
 	gpio.GPIO_Pin = GPIO_Pin_10;	GPIO_Init(GPIOC, &gpio);
@@ -88,7 +92,8 @@ void init_dig_inouts(void){
 
 	gpio.GPIO_PuPd = GPIO_PuPd_UP;
 
-	gpio.GPIO_Pin = INF1BUT_pin;	GPIO_Init(INF1BUT_GPIO, &gpio);
-	gpio.GPIO_Pin = INF2BUT_pin;	GPIO_Init(INF2BUT_GPIO, &gpio);
-
+	gpio.GPIO_Pin = INF1BUT_pin;
+	GPIO_Init(INF1BUT_GPIO, &gpio);
+	gpio.GPIO_Pin = INF2BUT_pin;
+	GPIO_Init(INF2BUT_GPIO, &gpio);
 }

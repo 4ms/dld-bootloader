@@ -2,9 +2,9 @@
  * i2s.c - I2S feeder routines
  */
 
+#include "codec_CS4271.h"
 #include "i2s.h"
-#include "codec.h"
-//#include "inouts.h"
+
 
 #define codec_BUFF_LEN 8
 //#define codec_BUFF_LEN 128
@@ -26,8 +26,7 @@ volatile int16_t rx_buffer[codec_BUFF_LEN];
 DMA_InitTypeDef dma_ch1tx, dma_ch1rx;
 NVIC_InitTypeDef nvic_rx;
 
-void DeInit_I2SDMA(void)
-{
+void DeInit_I2SDMA(void) {
 	NVIC_DisableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
 
 	RCC_AHB1PeriphClockCmd(AUDIO_I2S_DMA_CLOCK, DISABLE);
@@ -49,14 +48,9 @@ void DeInit_I2SDMA(void)
 	I2C_Cmd(CODEC_I2C, DISABLE);
 	I2C_DeInit(CODEC_I2C);
 	RCC_APB1PeriphClockCmd(CODEC_I2C_CLK, DISABLE);
-
-
-
 }
 
-
-void Init_I2SDMA_Channel(void)
-{
+void Init_I2SDMA_Channel(void) {
 	uint32_t Size = codec_BUFF_LEN;
 
 	/* Enable the DMA clock */
@@ -137,7 +131,6 @@ void Init_I2SDMA_Channel(void)
 
 	I2S_Cmd(CODEC_I2S, ENABLE);
 	I2S_Cmd(CODEC_I2S_EXT, ENABLE);
-
 }
 
 void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size);
@@ -147,33 +140,28 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
   * @param  None
   * @retval none
   */
-void AUDIO_I2S_EXT_IRQHANDLER(void)
-{
+void AUDIO_I2S_EXT_IRQHANDLER(void) {
 	int16_t *src, *dst, sz;
 	uint8_t i;
 
-
 	/* Transfer complete interrupt */
-	if (DMA_GetFlagStatus(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_TC) != RESET)
-	{
+	if (DMA_GetFlagStatus(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_TC) != RESET) {
 		/* Point to 2nd half of buffers */
-		sz = codec_BUFF_LEN/2;
+		sz = codec_BUFF_LEN / 2;
 		src = (int16_t *)(rx_buffer_start) + sz;
 		dst = (int16_t *)(tx_buffer_start) + sz;
 
 		/* Handle 2nd half */
 		process_audio_block(src, dst, 0, sz);
 
-
 		/* Clear the Interrupt flag */
 		DMA_ClearFlag(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_TC);
 	}
 
 	/* Half Transfer complete interrupt */
-	if (DMA_GetFlagStatus(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_HT) != RESET)
-	{
+	if (DMA_GetFlagStatus(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_HT) != RESET) {
 		/* Point to 1st half of buffers */
-		sz = codec_BUFF_LEN/2;
+		sz = codec_BUFF_LEN / 2;
 		src = (int16_t *)(rx_buffer_start);
 		dst = (int16_t *)(tx_buffer_start);
 
@@ -183,11 +171,4 @@ void AUDIO_I2S_EXT_IRQHANDLER(void)
 		/* Clear the Interrupt flag */
 		DMA_ClearFlag(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_HT);
 	}
-
 }
-
-
-
-
-
-

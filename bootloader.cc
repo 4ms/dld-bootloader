@@ -41,8 +41,8 @@
 #include "encoding/fsk/packet_decoder.h"
 
 extern "C" {
-#include "codec.h"
-#include "dig_inouts.h"
+#include "codec_CS4271.h"
+#include "dig_pins.h"
 #include "i2s.h"
 #include <stddef.h>
 }

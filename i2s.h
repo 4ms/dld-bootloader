@@ -10,8 +10,7 @@
 //#include "stm32f4xx_spi.h"
 //#include "stm32f4xx_dma.h"
 #include "misc.h"
-#include "codec.h"
-
+// #include "codec.h"
 
 void I2S_Block_Init(void);
 void I2S_Block_PlayRec(void);
@@ -19,4 +18,3 @@ void DeInit_I2SDMA(void);
 void Init_I2SDMA_Channel(void);
 
 #endif
-

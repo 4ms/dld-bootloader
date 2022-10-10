@@ -18,7 +18,8 @@ periphfiles = stm32f4xx_flash.c \
 			stm32f4xx_tim.c \
 			stm32f4xx_i2c.c \
 			stm32f4xx_spi.c \
-			stm32f4xx_dma.c 
+			stm32f4xx_dma.c \
+			misc.c 
 PERIPHDIR = stm32/periph/stdperiph
 PERIPH = $(addprefix  $(PERIPHDIR)/src/,$(periphfiles))
 BUILDDIR = build/f427
@@ -59,7 +60,6 @@ SOURCES = 	$(DEVICE)/src/$(STARTUP) \
 			bootloader.cc \
 			system_clock.cc \
 			system.cc \
-			misc.c \
 			encoding/fsk/packet_decoder.cc 
 
 INCLUDES += -I$(DEVICE)/include \
