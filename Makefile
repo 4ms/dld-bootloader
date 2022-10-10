@@ -19,11 +19,14 @@ periphfiles = stm32f4xx_flash.c \
 			stm32f4xx_i2c.c \
 			stm32f4xx_spi.c \
 			stm32f4xx_dma.c 
-PERIPH = $(addprefix stm32/periph/stdperiph/,$(periphfiles))
+PERIPHDIR = stm32/periph/stdperiph
+PERIPH = $(addprefix  $(PERIPHDIR)/src/,$(periphfiles))
 BUILDDIR = build/f427
-# target_incs = -Iinc/f427
-# target_srcs = $(wildcard src/f427/*.c)
-# target_defs = -D'__FPU_PRESENT=1' -DUSE_STDPERIPH_DRIVER
+LDSCRIPT = $(DEVICE)/stm32f429xx.ld
+target_incs = -Isrc/f427
+target_srcs = $(wildcard src/f427/*.c)
+target_defs = -DUSE_STDPERIPH_DRIVER -DSTM32F427_437xx -D'HSE_VALUE=16000000'
+F_CPU = 168000000L
 
 else ifeq ($(TARGET),f446)
 STARTUP = startup_stm32f446xx.s
@@ -31,83 +34,85 @@ SYSTEM = system_stm32f4xx.c
 LOADFILE = STM32F446ZCHx_FLASH.ld
 DEVICE = stm32/device/f446
 CORE = stm32/core
-PERIPH = $(wildcard stm32/periph/STM32F4xx_HAL_Driver/src/*.c)
+PERIPHDIR = stm32/periph/STM32F4xx_HAL_Driver
+PERIPH = $(wildcard $(PERIPHDIR)/src/*.c)
 BUILDDIR = build/f446
-# target_incs = -Iinc/f446
-# target_srcs = $(wildcard src/f446/*.c)
-# target_defs = -DSTM32F446xx -DUSE_HAL_DRIVER
+LDSCRIPT = $(DEVICE)/STM32F446ZCHx_FLASH.ld
+target_incs = -Isrc/f446
+target_srcs = $(wildcard src/f446/*.c)
+target_defs = -DSTM32F446xx -DUSE_HAL_DRIVER
+F_CPU = 180000000L
 endif
 
-COMBO = ../DLD/build/$(TARGET)/combo
 MAINAPP_DIR = ../DLD/
-MAINAPP_HEX = ../DLD/build/main.hex
+COMBO = ../DLD/build/$(TARGET)/combo
+MAINAPP_HEX = ../DLD/build/$(TARGET)/main.hex
 
 BUILDDIR = build
 
 PROJECT = $(BUILDDIR)/$(PROJECTNAME)
 
-
 SOURCES = 	$(DEVICE)/src/$(STARTUP) \
 			$(DEVICE)/src/$(SYSTEM) \
+			$(PERIPH) \
+			$(target_srcs) \
 			bootloader.cc \
 			dig_inouts.c \
 			bootloader_utils.cc \
 			system_clock.cc \
 			system.cc \
 			misc.c \
-			$(PERIPH) \
 			codec.c \
 			i2s.c \
 			encoding/fsk/packet_decoder.cc 
 
 INCLUDES += -I$(DEVICE)/include \
 			-I$(CORE)/include \
-			-I$(PERIPH)/include \
-			-I$(PERIPH)/Inc \
+			-I$(PERIPHDIR)/include \
+			-I$(PERIPHDIR)/Inc \
 			$(target_incs)
 		
 OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
 
-LDSCRIPT = stm32f429xx.ld
 
 ARCHFLAGS = -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4 -mfloat-abi=soft -mfpu=fpv4-sp-d16 
-F_CPU = 168000000L
 
 FLAGS = -g2 -Os $(ARCHFLAGS)
-FLAGS += -I. -DARM_MATH_CM4 -D'__FPU_PRESENT=1' -DF_CPU=$(F_CPU)
-FLAGS += -DSTM32F427_437xx
-FLAGS += -DUSE_STDPERIPH_DRIVER
+FLAGS += -DARM_MATH_CM4 -D'__FPU_PRESENT=1' -DF_CPU=$(F_CPU)
 FLAGS += -fsingle-precision-constant -Wdouble-promotion
-
+FLAGS += -ffreestanding
+FLAGS += -fcommon
+FLAGS += -fdata-sections -ffunction-sections
+FLAGS += -fno-exceptions -fno-unwind-tables
+FLAGS += $(target_defs)
+FLAGS += -I. $(INCLUDES)
 
 CFLAGS = -std=c99
 CFLAGS += $(FLAGS)
 
-CPPFLAGS = -fno-exceptions
-CPPFLAGS += $(FLAGS)
+CXXFLAGS = -std=c++17
+CXXFLAGS += -Wno-register
+CXXFLAGS += -fno-rtti
+CXXFLAGS += -fno-threadsafe-statics
+CXXFLAGS += $(FLAGS)
 
 AFLAGS  = $(ARCHFLAGS)
-LFLAGS  = -Wl,-Map=$(PROJECT).map -Wl,--gc-sections \
-	-T $(LDSCRIPT) \
-	-I.
+LFLAGS  = -Wl,-Map=$(PROJECT).map -Wl,--gc-sections -T $(LDSCRIPT)
 
 # Executables
-
 
 ARCH 	= arm-none-eabi
 CC 		= $(ARCH)-gcc
 CXX 	= $(ARCH)-g++
-LD 		= $(ARCH)-gcc
+LD 		= $(ARCH)-g++
 AS 		= $(ARCH)-as
 OBJCPY 	= $(ARCH)-objcopy
 OBJDMP 	= $(ARCH)-objdump
 GDB 	= $(ARCH)-gdb
 SZ 		= $(ARCH)-size
-
-CPFLAGS = -O binary
-ODFLAGS	= -x --syms
-
 FLASH = st-flash
+
+DEPFLAGS = -MMD -MP -MF $(BUILDDIR)/$(basename $<).d
 
 # Targets
 all: $(PROJECT).bin
@@ -125,7 +130,6 @@ combo_flash: combo
 	
 $(PROJECT).hex: $(PROJECT).elf 
 	$(OBJCPY) -O ihex $< $@
-		
 
 combo: $(COMBO).bin 
 
@@ -136,8 +140,8 @@ $(COMBO).bin:  $(MAINAPP_HEX) $(PROJECT).hex
 
 
 $(PROJECT).bin: $(PROJECT).elf 
-	$(OBJCPY) $(CPFLAGS) $(PROJECT).elf $(PROJECT).bin
-	$(OBJDMP) $(ODFLAGS) $(PROJECT).elf > $(PROJECT).dmp
+	$(OBJCPY) -O binary $(PROJECT).elf $(PROJECT).bin
+	$(OBJDMP) -x --syms $(PROJECT).elf > $(PROJECT).dmp
 	$(OBJCPY) -O ihex $(PROJECT).elf $(PROJECT).hex
 	$(SZ) -d $(PROJECT).elf
 	ls -l $(PROJECT).elf $(PROJECT).bin $(PROJECT).hex
@@ -150,11 +154,18 @@ archive: $(COMBO).bin
 
 $(BUILDDIR)/%.o: %.cc
 	mkdir -p $(dir $@)
-	$(CXX) -c $(CPPFLAGS) $< -o $@
+	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 $(BUILDDIR)/%.o: %.c 
 	mkdir -p $(dir $@)
+	@echo "Compiling:" $<
 	$(CC) -c $(CFLAGS) $< -o $@
+
+# $(BUILDDIR)/%.o: %.c $(BUILDDIR)/%.d
+# 	@mkdir -p $(dir $@)
+# 	@echo "Compiling:" $<
+# 	$(CC) -c $(DEPFLAGS) $(CFLAGS) $< -o $@
+
 
 $(BUILDDIR)/%.o: %.s
 	mkdir -p $(dir $@)
