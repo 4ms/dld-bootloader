@@ -24,8 +24,9 @@
 //
 // See http://creativecommons.org/licenses/MIT/ for more information.
 
+#include "flash.hh"
+#include "flash_layout.hh"
 #include "stm32f4xx.h"
-
 #include "system.h"
 
 #include <cstring>
@@ -55,17 +56,14 @@ using namespace stmlib;
 using namespace stm_audio_bootloader;
 
 const float kSampleRate = 48000.0;
-uint32_t kStartExecutionAddress = 0x08008000;
-uint32_t kStartReceiveAddress = 0x08080000;
-uint32_t EndOfMemory = 0x080FFFFC;
-
-extern "C" {
 
 static inline void handle_fault(void) {
 	//TODO: Reset system if not in debug mode
 	while (1)
 		;
 }
+
+extern "C" {
 void HardFault_Handler(void) {
 	handle_fault();
 }
@@ -107,9 +105,7 @@ volatile UiState ui_state;
 uint16_t manual_exit_primed;
 bool exit_updater;
 
-extern "C" {
-
-inline void *memcpy(void *dest, const void *src, size_t n) {
+extern "C" inline void *memcpy(void *dest, const void *src, size_t n) {
 	char *dp = (char *)dest;
 	const char *sp = (const char *)src;
 	while (n--)
@@ -174,13 +170,13 @@ void check_button(void) {
 	}
 }
 
-void SysTick_Handler() {
+extern "C" void SysTick_Handler() {
 	system_clock.Tick(); // Tick global ms counter.
 	update_LEDs();
 	check_button();
 }
 
-void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size) {
+extern "C" void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size) {
 	static uint16_t discard_samples = 8000;
 	bool sample;
 	static bool last_sample = false;
@@ -234,83 +230,31 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t 
 	}
 }
 
-} //extern C
-
 static uint32_t current_address;
-static uint32_t kSectorBaseAddress[] = {0x08000000,
-										0x08004000,
-										0x08008000,
-										0x0800C000,
-										0x08010000,
-										0x08020000,
-										0x08040000,
-										0x08060000,
-										0x08080000,
-										0x080A0000,
-										0x080C0000,
-										0x080E0000};
 
 const uint32_t kBlockSize = 16384;
 const uint16_t kPacketsPerBlock = kBlockSize / kPacketSize;
 uint8_t recv_buffer[kBlockSize];
 
 inline void CopyMemory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
-
-	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR |
-					FLASH_FLAG_PGSERR);
-
-	for (size_t written = 0; written < size; written += 4) {
-
-		//check if dst_addr is the start of a sector (in which case we should erase the sector)
-		for (int32_t i = 0; i < 12; ++i) {
-			if (dst_addr == kSectorBaseAddress[i]) {
-
-				LED_INF1_OFF;
-				LED_INF2_OFF;
-				LED_PINGBUT_OFF;
-				LED_OVLD1_OFF;
-				LED_OVLD2_OFF;
-				FLASH_EraseSector(i * 8, VoltageRange_3);
-				LED_INF1_ON;
-				LED_INF2_ON;
-				LED_PINGBUT_ON;
-				LED_OVLD1_ON;
-				LED_OVLD2_ON;
-			}
-		}
-
-		//Boundary check
-		if (dst_addr > (kStartReceiveAddress - 4)) //Do not overwrite receive buffer
-			break;
-
-		//Program the word
-		FLASH_ProgramWord(dst_addr, *(uint32_t *)src_addr);
-
-		src_addr += 4;
-		dst_addr += 4;
-	}
+	LED_INF1_OFF;
+	LED_INF2_OFF;
+	LED_PINGBUT_OFF;
+	LED_OVLD1_OFF;
+	LED_OVLD2_OFF;
+	flash_copy_memory(src_addr, dst_addr, size);
+	LED_INF1_ON;
+	LED_INF2_ON;
+	LED_PINGBUT_ON;
+	LED_OVLD1_ON;
+	LED_OVLD2_ON;
 }
 
 inline void ProgramPage(const uint8_t *data, size_t size) {
 	LED_PINGBUT_ON;
-
-	FLASH_Unlock();
-	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR |
-					FLASH_FLAG_PGSERR);
-	for (int32_t i = 0; i < 12; ++i) {
-		if (current_address == kSectorBaseAddress[i]) {
-			FLASH_EraseSector(i * 8, VoltageRange_3);
-		}
-	}
-	const uint32_t *words = static_cast<const uint32_t *>(static_cast<const void *>(data));
-	for (size_t written = 0; written < size; written += 4) {
-		FLASH_ProgramWord(current_address, *words++);
-		current_address += 4;
-		if (current_address >= EndOfMemory) {
-			ui_state = UI_STATE_ERROR;
-			g_error = true;
-			break;
-		}
+	if (!flash_program_page(current_address, data, size)) {
+		g_error = true;
+		ui_state = UI_STATE_ERROR;
 	}
 	LED_PINGBUT_OFF;
 }
