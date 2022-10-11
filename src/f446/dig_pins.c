@@ -27,15 +27,6 @@
  */
 
 #include "dig_pins.h"
-#include "adc.h"
-#include "audio_memory.h"
-#include "globals.h"
-#include "looping_delay.h"
-#include "params.h"
-#include "timers.h"
-
-#include "buttons_jacks.h"
-
 #include "stm32f4xx.h"
 
 void init_dig_inouts(void) {
@@ -78,15 +69,15 @@ void init_dig_inouts(void) {
 	HAL_GPIO_Init(LED_REV2_GPIO, &gpio);
 
 	// CLKOUT Jacks
-	gpio.Pin = CLKOUT_pin;
-	HAL_GPIO_Init(CLKOUT_GPIO, &gpio);
-	gpio.Pin = CLKOUT1_pin;
-	HAL_GPIO_Init(CLKOUT1_GPIO, &gpio);
-	gpio.Pin = CLKOUT2_pin;
-	HAL_GPIO_Init(CLKOUT2_GPIO, &gpio);
-	CLKOUT_OFF;
-	CLKOUT1_OFF;
-	CLKOUT2_OFF;
+	// gpio.Pin = CLKOUT_pin;
+	// HAL_GPIO_Init(CLKOUT_GPIO, &gpio);
+	// gpio.Pin = CLKOUT1_pin;
+	// HAL_GPIO_Init(CLKOUT1_GPIO, &gpio);
+	// gpio.Pin = CLKOUT2_pin;
+	// HAL_GPIO_Init(CLKOUT2_GPIO, &gpio);
+	// CLKOUT_OFF;
+	// CLKOUT1_OFF;
+	// CLKOUT2_OFF;
 
 	// DEBUG pins
 
@@ -109,14 +100,14 @@ void init_dig_inouts(void) {
 	gpio.Pull = GPIO_PULLUP;
 
 	// Div/Mult switches
-	gpio.Pin = TIMESW_CH1_T1_pin;
-	HAL_GPIO_Init(TIMESW_CH1_T1_GPIO, &gpio);
-	gpio.Pin = TIMESW_CH1_T2_pin;
-	HAL_GPIO_Init(TIMESW_CH1_T2_GPIO, &gpio);
-	gpio.Pin = TIMESW_CH2_T1_pin;
-	HAL_GPIO_Init(TIMESW_CH2_T1_GPIO, &gpio);
-	gpio.Pin = TIMESW_CH2_T2_pin;
-	HAL_GPIO_Init(TIMESW_CH2_T2_GPIO, &gpio);
+	// gpio.Pin = TIMESW_CH1_T1_pin;
+	// HAL_GPIO_Init(TIMESW_CH1_T1_GPIO, &gpio);
+	// gpio.Pin = TIMESW_CH1_T2_pin;
+	// HAL_GPIO_Init(TIMESW_CH1_T2_GPIO, &gpio);
+	// gpio.Pin = TIMESW_CH2_T1_pin;
+	// HAL_GPIO_Init(TIMESW_CH2_T1_GPIO, &gpio);
+	// gpio.Pin = TIMESW_CH2_T2_pin;
+	// HAL_GPIO_Init(TIMESW_CH2_T2_GPIO, &gpio);
 
 	// Reverse buttons
 	gpio.Pin = REV2BUT_pin;
@@ -128,9 +119,9 @@ void init_dig_inouts(void) {
 	gpio.Pin = PINGBUT_pin;
 	HAL_GPIO_Init(PINGBUT_GPIO, &gpio);
 
-	gpio.Pull = GPIO_NOPULL;
-	gpio.Pin = PINGJACK_pin;
-	HAL_GPIO_Init(PINGJACK_GPIO, &gpio);
+	// gpio.Pull = GPIO_NOPULL;
+	// gpio.Pin = PINGJACK_pin;
+	// HAL_GPIO_Init(PINGJACK_GPIO, &gpio);
 
 	// Inf Repeat buttons and jacks
 	gpio.Pull = GPIO_PULLUP;
@@ -140,22 +131,22 @@ void init_dig_inouts(void) {
 	gpio.Pin = INF2BUT_pin;
 	HAL_GPIO_Init(INF2BUT_GPIO, &gpio);
 
-	gpio.Pull = GPIO_PULLDOWN;
+	// gpio.Pull = GPIO_PULLDOWN;
 
-	gpio.Pin = INF1JACK_pin;
-	HAL_GPIO_Init(INF1JACK_GPIO, &gpio);
-	gpio.Pin = INF2JACK_pin;
-	HAL_GPIO_Init(INF2JACK_GPIO, &gpio);
+	// gpio.Pin = INF1JACK_pin;
+	// HAL_GPIO_Init(INF1JACK_GPIO, &gpio);
+	// gpio.Pin = INF2JACK_pin;
+	// HAL_GPIO_Init(INF2JACK_GPIO, &gpio);
 
-	gpio.Pin = REV1JACK_pin;
-	HAL_GPIO_Init(REV1JACK_GPIO, &gpio);
-	gpio.Pin = REV2JACK_pin;
-	HAL_GPIO_Init(REV2JACK_GPIO, &gpio);
+	// gpio.Pin = REV1JACK_pin;
+	// HAL_GPIO_Init(REV1JACK_GPIO, &gpio);
+	// gpio.Pin = REV2JACK_pin;
+	// HAL_GPIO_Init(REV2JACK_GPIO, &gpio);
 
-	gpio.Pull = GPIO_PULLUP;
+	// gpio.Pull = GPIO_PULLUP;
 
-	gpio.Pin = JUMPER_1_pin;
-	HAL_GPIO_Init(JUMPER_1_GPIO, &gpio);
-	gpio.Pin = JUMPER_2_pin;
-	HAL_GPIO_Init(JUMPER_2_GPIO, &gpio);
+	// gpio.Pin = JUMPER_1_pin;
+	// HAL_GPIO_Init(JUMPER_1_GPIO, &gpio);
+	// gpio.Pin = JUMPER_2_pin;
+	// HAL_GPIO_Init(JUMPER_2_GPIO, &gpio);
 }

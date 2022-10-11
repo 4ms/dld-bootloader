@@ -1,28 +1,29 @@
-#include "stm32xx.h"
+#include "stm32f4xx.h"
 
 #define USING_FSK
 // #define USING_QPSK
 
-#include "../system.hh"
-#include "bootloader/animation.hh"
-#include "bootloader/buttons.hh"
-#include "bootloader/gate_input.hh"
-#include "bootloader/leds.hh"
+#include "animation.hh"
+#include "buttons.hh"
+#include "nvic.h"
+#include "reception.hh"
+#include "system.hh"
+// #include "bootloader/gate_input.hh"
+// #include "bootloader/leds.hh"
+#include "bl_utils.hh"
 #include "bootloader_settings.hh"
-#include "dig_inouts.hh"
-#include "drivers/system.hh"
+#include "dig_pins.h"
+// #include "drivers/arch.hh"
+// #include "drivers/system.hh"
 #include "flash.hh"
 #include "flash_layout.hh"
 
-#include "bl_utils.hh"
-#include "drivers/arch.hh"
-
 #ifdef USING_QPSK
-#include "stm_audio_bootloader/qpsk/demodulator.h"
-#include "stm_audio_bootloader/qpsk/packet_decoder.h"
+#include "encoding/qpsk/demodulator.h"
+#include "encoding/qpsk/packet_decoder.h"
 #else
-#include "stm_audio_bootloader/fsk/demodulator.h"
-#include "stm_audio_bootloader/fsk/packet_decoder.h"
+#include "encoding/fsk/demodulator.h"
+#include "encoding/fsk/packet_decoder.h"
 #endif
 
 using namespace stmlib;
@@ -81,20 +82,24 @@ void main() {
 	bool rcv_err;
 	uint8_t exit_updater = false;
 
-	mdrivlib::System::SetVectorTable(BootloaderFlashAddr);
+	set_vect_table(BootloaderFlashAddr);
+	// mdrivlib::System::SetVectorTable(BootloaderFlashAddr);
 	system_init();
 
 	delay(300);
 
-	init_leds();
-	init_buttons();
-	init_gate_in();
+	// init_leds();
+	// init_buttons();
+	// init_gate_in();
+
+	init_dig_inouts();
 
 	animate(ANI_RESET);
 
 	dly = 32000;
 	while (dly--) {
-		if (button_pushed(Button::Ping) && button_pushed(Button::Cycle))
+		if (button_pushed(Button::RevA) && button_pushed(Button::RevB) && button_pushed(Button::Ping) &&
+			!button_pushed(Button::InfA) && !button_pushed(Button::InfB))
 			button_debounce++;
 		else
 			button_debounce = 0;
@@ -112,19 +117,20 @@ void main() {
 	if (do_bootloader) {
 		init_reception();
 
-		start_reception(kSampleRate, []() {
-			bool sample = gate_in_read(gatein_threshold);
-			if (!discard_samples) {
-				demodulator.PushSample(sample ? 1 : 0);
-			} else {
-				--discard_samples;
-			}
-		});
+		start_reception();
+		// start_reception(kSampleRate, []() {
+		// 	bool sample = gate_in_read(gatein_threshold);
+		// 	if (!discard_samples) {
+		// 		demodulator.PushSample(sample ? 1 : 0);
+		// 	} else {
+		// 		--discard_samples;
+		// 	}
+		// });
 
 		uint32_t button1_exit_armed = 0;
 		uint32_t cycle_but_armed = 0;
 
-		while (button_pushed(Button::Ping) || button_pushed(Button::Cycle))
+		while (button_pushed(Button::RevA))
 			;
 
 		delay(300);
@@ -181,7 +187,7 @@ void main() {
 						}
 						exit_updater = true;
 						ui_state = UI_STATE_DONE;
-						animate_until_button_pushed(ANI_SUCCESS, Button::Ping);
+						animate_until_button_pushed(ANI_SUCCESS, Button::RevA);
 						animate(ANI_RESET);
 						delay(100);
 						break;
@@ -192,28 +198,12 @@ void main() {
 			}
 			if (rcv_err) {
 				ui_state = UI_STATE_ERROR;
-				animate_until_button_pushed(ANI_FAIL_ERR, Button::Ping);
+				animate_until_button_pushed(ANI_FAIL_ERR, Button::RevA);
 				animate(ANI_RESET);
 				delay(100);
 				init_reception();
 				exit_updater = false;
 			}
-
-			if (button_pushed(Button::Cycle)) {
-				if (cycle_but_armed) {
-					if (packet_index == 0) {
-						gatein_threshold += thresh_stepsize;
-						if (gatein_threshold >= (thresh_min + thresh_steps * thresh_stepsize))
-							gatein_threshold = thresh_min;
-						set_threshold_led();
-					} else {
-						delay(100);
-						init_reception();
-					}
-				}
-				cycle_but_armed = 0;
-			} else
-				cycle_but_armed = 1;
 
 			if (button_pushed(Button::Ping)) {
 				if (button1_exit_armed) {
@@ -226,7 +216,7 @@ void main() {
 				button1_exit_armed = 1;
 		}
 		ui_state = UI_STATE_DONE;
-		while (button_pushed(Button::Ping) || button_pushed(Button::Cycle)) {
+		while (button_pushed(Button::Ping) || button_pushed(Button::RevA)) {
 			;
 		}
 	}
@@ -234,28 +224,6 @@ void main() {
 	reset_buses();
 	reset_RCC();
 	jump_to(kStartExecutionAddress);
-}
-
-void set_threshold_led() {
-	if constexpr (BootloaderConf::UseGateInThreshold) {
-		// 25 possible levels
-		uint8_t seq = (gatein_threshold - thresh_min) / thresh_stepsize;
-		Palette Acolor = (seq / 5) == 0 ? Palette::Black
-					   : (seq / 5) == 1 ? Palette::Blue
-					   : (seq / 5) == 2 ? Palette::Magenta
-					   : (seq / 5) == 3 ? Palette::Red
-										: Palette::White;
-		Palette Bcolor = (seq % 5) == 0 ? Palette::Black
-					   : (seq % 5) == 1 ? Palette::Blue
-					   : (seq % 5) == 2 ? Palette::Magenta
-					   : (seq % 5) == 3 ? Palette::Red
-										: Palette::White;
-		set_rgb_led(RgbLeds::EnvA, Acolor);
-		set_rgb_led(RgbLeds::EnvB, Bcolor);
-	} else {
-		set_rgb_led(RgbLeds::EnvA, Palette::Green);
-		set_rgb_led(RgbLeds::EnvB, Palette::Green);
-	}
 }
 
 void init_reception() {
@@ -344,27 +312,32 @@ extern "C" void SysTick_Handler(void) {
 	update_LEDs();
 }
 
+void panic() {
+	// NVIC_SystemReset();
+	panic();
+}
+
 extern "C" void NMI_Handler() {
-	__BKPT();
+	panic();
 }
 extern "C" void HardFault_Handler() {
-	__BKPT();
+	panic();
 }
 extern "C" void MemManage_Handler() {
-	__BKPT();
+	panic();
 }
 extern "C" void BusFault_Handler() {
-	__BKPT();
+	panic();
 }
 extern "C" void UsageFault_Handler() {
-	__BKPT();
+	panic();
 }
 extern "C" void SVC_Handler() {
-	__BKPT();
+	panic();
 }
 extern "C" void DebugMon_Handler() {
-	__BKPT();
+	panic();
 }
 extern "C" void PendSV_Handler() {
-	__BKPT();
+	panic();
 }
