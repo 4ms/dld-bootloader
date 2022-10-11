@@ -29,8 +29,8 @@
 #ifndef STM_AUDIO_BOOTLOADER_FSK_PACKET_DECODER_H_
 #define STM_AUDIO_BOOTLOADER_FSK_PACKET_DECODER_H_
 
-#include "../../stmlib.h"
-#include "../../ring_buffer.h"
+#include "stmlib.h"
+#include "ring_buffer.h"
 
 namespace stm_audio_bootloader {
 

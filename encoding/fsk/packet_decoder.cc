@@ -26,7 +26,7 @@
 
 #include <cstdio>
 
-#include "../../crc32.h"
+#include "crc32.h"
 
 namespace stm_audio_bootloader {
 

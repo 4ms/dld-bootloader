@@ -29,8 +29,8 @@
 #ifndef STM_AUDIO_BOOTLOADER_FSK_DEMODULATOR_H_
 #define STM_AUDIO_BOOTLOADER_FSK_DEMODULATOR_H_
 
-#include "../../stmlib.h"
-#include "../../ring_buffer.h"
+#include "stmlib.h"
+#include "ring_buffer.h"
 
 #include <cstdio>
 
