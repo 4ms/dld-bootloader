@@ -14,6 +14,7 @@
 #include "nvic.h"
 #include "reception.hh"
 #include "system.hh"
+#include "timer.h"
 #include "ui_state.hh"
 
 #ifdef USING_QPSK
@@ -46,7 +47,6 @@ constexpr uint32_t kBlkSize = BootloaderConf::ReceiveSectorSize; //Flash page si
 constexpr uint16_t kPacketsPerBlock = kBlkSize / kPacketSize; //kPacketSize=256
 uint8_t recv_buffer[kBlkSize];
 
-volatile uint32_t systmr = 0;
 PacketDecoder decoder;
 Demodulator demodulator;
 
@@ -59,7 +59,6 @@ UiState ui_state;
 static void animate_until_button_pushed(Animations animation_type, Button button);
 static void update_LEDs();
 static void init_reception();
-static void delay(uint32_t tm);
 static bool write_buffer();
 static void new_block();
 static void new_packet();
@@ -297,15 +296,8 @@ void animate_until_button_pushed(Animations animation_type, Button button) {
 	}
 }
 
-void delay(uint32_t ticks) {
-	uint32_t i = systmr;
-	while ((systmr - i) < ticks) {
-		;
-	}
-}
-
 extern "C" void SysTick_Handler(void) {
-	systmr = systmr + 1;
+	inc_systmr();
 	update_LEDs();
 }
 

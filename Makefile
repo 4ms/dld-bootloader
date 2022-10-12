@@ -61,6 +61,7 @@ SOURCES = 	$(DEVICE)/src/$(STARTUP) \
 			src/system_clock.cc \
 			src/animation.cc \
 			src/bl_utils.cc \
+			src/timer.cc \
 			encoding/fsk/packet_decoder.cc 
 
 INCLUDES += -Isrc \
