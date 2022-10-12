@@ -5,7 +5,6 @@
 #include "codec_CS4271.h"
 #include "i2s.h"
 
-
 #define codec_BUFF_LEN 8
 //#define codec_BUFF_LEN 128
 
@@ -131,6 +130,14 @@ void Init_I2SDMA_Channel(void) {
 
 	I2S_Cmd(CODEC_I2S, ENABLE);
 	I2S_Cmd(CODEC_I2S_EXT, ENABLE);
+}
+
+void Start_I2SDMA_Channel(void) {
+	NVIC_EnableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
+}
+
+void set_codec_callback(void (*cb)(int16_t *, int16_t *, uint16_t)) {
+	//TODO: implement
 }
 
 void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size);

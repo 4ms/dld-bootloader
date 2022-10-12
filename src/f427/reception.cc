@@ -1,6 +1,7 @@
 #include "codec_CS4271.h"
 #include "dig_pins.h"
 #include "encoding/fsk/demodulator.h"
+#include "i2s.h"
 #include "ui_state.hh"
 
 void start_reception() {
@@ -13,7 +14,7 @@ void start_reception() {
 
 	Codec_Init(48000);
 
-	NVIC_EnableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
+	Start_I2SDMA_Channel();
 }
 
 extern stm_audio_bootloader::Demodulator demodulator;
