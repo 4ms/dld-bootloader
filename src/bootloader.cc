@@ -93,24 +93,11 @@ void main() {
 
 	delay(100);
 
-	//Debug:
-	// DigIO::ClockBusOut init;
-	// mdrivlib::FPin<mdrivlib::GPIO::E, mdrivlib::PinNum::_3, mdrivlib::PinMode::Output> debug2;
-	// debug2.low();
-	// DigIO::ClockBusOut::low();
-
 	if (do_bootloader) {
 		init_reception();
 
+		//TODO: start_reception(kSampleRate, []() {...}):
 		start_reception();
-		// start_reception(kSampleRate, []() {
-		// 	bool sample = gate_in_read(gatein_threshold);
-		// 	if (!discard_samples) {
-		// 		demodulator.PushSample(sample ? 1 : 0);
-		// 	} else {
-		// 		--discard_samples;
-		// 	}
-		// });
 
 		uint32_t button1_exit_armed = 0;
 		uint32_t cycle_but_armed = 0;
@@ -153,10 +140,12 @@ void main() {
 						break;
 
 					case PACKET_DECODER_STATE_ERROR_SYNC:
+						LED_LOOP1_ON;
 						rcv_err = true;
 						break;
 
 					case PACKET_DECODER_STATE_ERROR_CRC:
+						LED_LOOP2_ON;
 						rcv_err = true;
 						break;
 
@@ -182,7 +171,7 @@ void main() {
 
 						exit_updater = true;
 						ui_state = UI_STATE_DONE;
-						animate_until_button_pushed(ANI_SUCCESS, Button::RevA);
+						animate_until_button_pushed(ANI_SUCCESS, Button::Ping);
 						animate(ANI_RESET);
 						delay(100);
 						break;
