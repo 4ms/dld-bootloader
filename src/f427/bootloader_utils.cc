@@ -135,12 +135,3 @@ void reset_RCC() {
 	//Simplification of SystemCoreClockUpdate()
 	//  SystemCoreClock = HSI_VALUE;
 }
-
-typedef void (*EntryPoint)(void);
-
-void JumpTo(uint32_t address) {
-	uint32_t application_address = *(__IO uint32_t *)(address + 4);
-	EntryPoint application = (EntryPoint)(application_address);
-	__set_MSP(*(__IO uint32_t *)address);
-	application();
-}

@@ -1,4 +1,7 @@
 #include "codec_CS4271.h"
+#include "dig_pins.h"
+#include "encoding/fsk/demodulator.h"
+#include "ui_state.hh"
 
 void start_reception() {
 	Codec_Init_Reset_GPIO();
@@ -13,10 +16,13 @@ void start_reception() {
 	NVIC_EnableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
 }
 
+extern stm_audio_bootloader::Demodulator demodulator;
+extern volatile UiState ui_state;
+
 extern "C" void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size) {
 	static uint16_t discard_samples = 8000;
-	bool sample;
 	static bool last_sample = false;
+	bool sample;
 	int32_t t;
 
 	while (size) {

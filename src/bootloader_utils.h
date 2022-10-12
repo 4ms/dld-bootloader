@@ -29,5 +29,3 @@
 
 void reset_buses();
 void reset_RCC();
-void JumpTo(uint32_t address);
-

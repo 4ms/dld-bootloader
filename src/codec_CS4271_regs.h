@@ -11,23 +11,11 @@
 //CODECA is left channel of the DLD (I2C1, I2S3)
 //CODECB is right channel of the DLD (I2C2, I2S2)
 
-#ifdef USE_VCXO
-
-#define CODECA_MODE CODEC_IS_MASTER
-#define CODECB_MODE CODEC_IS_MASTER
-
-#define CODECA_MCLK_SRC MCLK_SRC_EXTERNAL
-#define CODECB_MCLK_SRC MCLK_SRC_EXTERNAL
-
-#else
-
 #define CODECA_MODE CODEC_IS_SLAVE
 #define CODECB_MODE CODEC_IS_SLAVE
 
 #define CODECA_MCLK_SRC MCLK_SRC_STM
 #define CODECB_MCLK_SRC MCLK_SRC_STM
-
-#endif
 
 /* Codec audio Standards */
 // #ifdef USE_I2S_STANDARD_PHILLIPS

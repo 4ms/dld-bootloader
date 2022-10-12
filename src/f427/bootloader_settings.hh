@@ -1,10 +1,10 @@
 #include <cstdint>
 namespace BootloaderConf
 {
-static constexpr bool UseGateInThreshold = true;
+// static constexpr bool UseGateInThreshold = true;
 static constexpr uint32_t SampleRate = 48000;
 
-constexpr inline uint32_t ReceiveSectorSize = 128 * 1024;
+constexpr inline uint32_t ReceiveSectorSize = 16 * 1024;
 
 struct FskEncoding {
 	uint32_t blank;

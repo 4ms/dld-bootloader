@@ -57,9 +57,10 @@ SOURCES = 	$(DEVICE)/src/$(STARTUP) \
 			$(DEVICE)/src/$(SYSTEM) \
 			$(PERIPH) \
 			$(target_srcs) \
-			src/bootloader-dld.cc \
+			src/bootloader.cc \
 			src/system_clock.cc \
-			src/system.cc \
+			src/animation.cc \
+			src/bl_utils.cc \
 			encoding/fsk/packet_decoder.cc 
 
 INCLUDES += -Isrc \

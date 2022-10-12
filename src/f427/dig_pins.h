@@ -22,11 +22,9 @@
 #define INF1BUT_GPIO GPIOC
 #define INF1BUT (!(INF1BUT_GPIO->IDR & INF1BUT_pin))
 
-
 #define INF2BUT_pin GPIO_Pin_9
 #define INF2BUT_GPIO GPIOA
 #define INF2BUT (!(INF2BUT_GPIO->IDR & INF2BUT_pin))
-
 
 #define REVSW_RCC RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOG
 
@@ -37,7 +35,6 @@
 #define REV2SW_pin GPIO_Pin_1
 #define REV2SW_GPIO GPIOA
 #define REVSW_CH2 (!(REV2SW_GPIO->IDR & REV2SW_pin))
-
 
 //OUTPUTS
 
@@ -70,9 +67,6 @@
 #define LED_INF2_GPIO GPIOA
 #define LED_INF2_ON LED_INF2_GPIO->BSRRL = LED_INF2_pin
 #define LED_INF2_OFF LED_INF2_GPIO->BSRRH = LED_INF2_pin
-
-
-
 
 //OVLD LEDs
 #define LED_RCC RCC_AHB1Periph_GPIOA
@@ -114,6 +108,14 @@
 #define DEBUG4_ON DEBUG4_GPIO->BSRRL = DEBUG4
 #define DEBUG4_OFF DEBUG4_GPIO->BSRRH = DEBUG4
 */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void init_dig_inouts(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* INOUTS_H_ */

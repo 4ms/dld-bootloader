@@ -4,19 +4,17 @@
 // #define USING_QPSK
 
 #include "animation.hh"
+#include "bl_utils.hh"
+#include "bootloader_settings.hh"
+#include "bootloader_utils.h"
 #include "buttons.hh"
+#include "dig_pins.h"
+#include "flash.hh"
+#include "flash_layout.hh"
 #include "nvic.h"
 #include "reception.hh"
 #include "system.hh"
-// #include "bootloader/gate_input.hh"
-// #include "bootloader/leds.hh"
-#include "bl_utils.hh"
-#include "bootloader_settings.hh"
-#include "dig_pins.h"
-// #include "drivers/arch.hh"
-// #include "drivers/system.hh"
-#include "flash.hh"
-#include "flash_layout.hh"
+#include "ui_state.hh"
 
 #ifdef USING_QPSK
 #include "encoding/qpsk/demodulator.h"
@@ -56,12 +54,6 @@ uint16_t packet_index;
 uint16_t discard_samples = 8000;
 uint32_t current_flash_address;
 
-constexpr uint32_t thresh_stepsize = 10;
-constexpr uint32_t thresh_min = 2080;
-constexpr uint32_t thresh_steps = 25;
-uint32_t gatein_threshold = 2200;
-
-enum UiState { UI_STATE_WAITING, UI_STATE_RECEIVING, UI_STATE_ERROR, UI_STATE_WRITING, UI_STATE_DONE };
 UiState ui_state;
 
 static void animate_until_button_pushed(Animations animation_type, Button button);
@@ -71,7 +63,6 @@ static void delay(uint32_t tm);
 static bool write_buffer();
 static void new_block();
 static void new_packet();
-static void set_threshold_led();
 
 void main() {
 	uint32_t symbols_processed = 0;
@@ -83,14 +74,9 @@ void main() {
 	uint8_t exit_updater = false;
 
 	set_vect_table(BootloaderFlashAddr);
-	// mdrivlib::System::SetVectorTable(BootloaderFlashAddr);
 	system_init();
 
 	delay(300);
-
-	// init_leds();
-	// init_buttons();
-	// init_gate_in();
 
 	init_dig_inouts();
 
@@ -134,7 +120,6 @@ void main() {
 			;
 
 		delay(300);
-		set_threshold_led();
 
 		while (!exit_updater) {
 			rcv_err = false;
@@ -177,6 +162,10 @@ void main() {
 						break;
 
 					case PACKET_DECODER_STATE_END_OF_TRANSMISSION:
+						// If our block size is as big as our transmission,
+						// then we might get to the end and have never written anything to
+						// flash (we know this is the case if we never incremented current_flash_address)
+						// So, write out our buffer now
 						if (current_flash_address == kStartReceiveAddress) {
 							if (!write_buffer()) {
 								ui_state = UI_STATE_ERROR;
@@ -185,6 +174,13 @@ void main() {
 								break;
 							}
 						}
+
+						// Copy the received data to the execution sectors if needed:
+						if (BootloaderReceiveAddr != AppFlashAddr) {
+							flash_copy_memory(
+								BootloaderReceiveAddr, AppFlashAddr, (current_flash_address - BootloaderReceiveAddr));
+						}
+
 						exit_updater = true;
 						ui_state = UI_STATE_DONE;
 						animate_until_button_pushed(ANI_SUCCESS, Button::RevA);
@@ -249,7 +245,8 @@ void init_reception() {
 
 bool write_buffer() {
 	if ((current_flash_address + kBlkSize) <= get_sector_addr(NumFlashSectors)) {
-		flash_write_page(recv_buffer, current_flash_address, kBlkSize);
+		// flash_write_page(recv_buffer, current_flash_address, kBlkSize);
+		flash_program_page(current_flash_address, recv_buffer, kBlkSize);
 		current_flash_address += kBlkSize;
 		return true;
 	} else {
