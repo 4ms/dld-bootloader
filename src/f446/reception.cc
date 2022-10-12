@@ -10,7 +10,6 @@ void start_reception() {
 	codec_reset_pin_init();
 	codec_gpio_init();
 	codec_sai_init(48000);
-	codec_i2c_init();
 
 	Init_I2SDMA_Channel();
 
