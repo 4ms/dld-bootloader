@@ -48,4 +48,5 @@ void system_init(void) {
 	}
 
 	HAL_Init();
+	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_2);
 }
