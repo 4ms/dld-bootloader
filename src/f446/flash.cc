@@ -55,7 +55,7 @@ void flash_copy_memory(uint32_t src_addr, uint32_t dst_addr, size_t size) {
 		}
 
 		//Program the word
-		HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, dst_addr, *(uint32_t *)src_addr);
+		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, dst_addr, *(uint32_t *)src_addr);
 
 		src_addr += 4;
 		dst_addr += 4;
@@ -72,7 +72,10 @@ bool flash_program_page(uint32_t current_address, const uint8_t *data, size_t si
 	}
 	const uint32_t *words = static_cast<const uint32_t *>(static_cast<const void *>(data));
 	for (size_t written = 0; written < size; written += 4) {
-		FLASH_ProgramWord(current_address, *words++);
+
+		//Program the word
+		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, current_address, *words++);
+
 		current_address += 4;
 		if (current_address >= get_sector_addr(NumFlashSectors)) {
 			HAL_FLASH_Lock();

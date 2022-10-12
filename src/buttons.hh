@@ -11,9 +11,9 @@ enum class Button { RevA, RevB, Ping, InfA, InfB };
 static inline bool button_pushed(Button button) {
 	switch (button) {
 		case Button::RevA:
-			return REVSW_CH1;
+			return REV1BUT;
 		case Button::RevB:
-			return REVSW_CH2;
+			return REV2BUT;
 		case Button::Ping:
 			return PINGBUT;
 		case Button::InfA:

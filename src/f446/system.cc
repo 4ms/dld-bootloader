@@ -1,7 +1,7 @@
 #include "panic.h"
 #include "stm32f4xx.h"
 
-void system_clock_init(void) {
+void system_init(void) {
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 

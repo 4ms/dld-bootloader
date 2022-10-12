@@ -6,30 +6,14 @@
 
 #define MCLK_SRC_STM 0
 #define MCLK_SRC_EXTERNAL 1
-//#define MCLK_SRC_CODEC 2
 
 //CODECA is left channel of the DLD (I2C1, I2S3)
-//CODECB is right channel of the DLD (I2C2, I2S2)
 
 #define CODECA_MODE CODEC_IS_SLAVE
 #define CODECB_MODE CODEC_IS_SLAVE
 
 #define CODECA_MCLK_SRC MCLK_SRC_STM
 #define CODECB_MCLK_SRC MCLK_SRC_STM
-
-/* Codec audio Standards */
-// #ifdef USE_I2S_STANDARD_PHILLIPS
-// #define CODEC_STANDARD 0x04
-// #define I2S_STANDARD I2S_Standard_Phillips
-// #elif defined(USE_I2S_STANDARD_MSB)
-// #define CODEC_STANDARD 0x00
-// #define I2S_STANDARD I2S_STANDARD_MSB
-// #elif defined(USE_I2S_STANDARD_LSB)
-// #define CODEC_STANDARD 0x08
-// #define I2S_STANDARD I2S_Standard_LSB
-// #else
-// #error "Error: No audio communication standard selected !"
-// #endif /* I2S_STANDARD */
 
 #define CS4271_ADDR_0 0b0010000
 #define CS4271_ADDR_1 0b0010001

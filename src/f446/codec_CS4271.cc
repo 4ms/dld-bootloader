@@ -36,12 +36,56 @@ I2C_HandleTypeDef hal_i2c1;
 SAI_HandleTypeDef hsai_BlockA1;
 SAI_HandleTypeDef hsai_BlockB1;
 
-static volatile uint32_t CODECTimeout = CODEC_LONG_TIMEOUT;
-static uint32_t Codec_TIMEOUT_UserCallback(void) {
-	return 1;
+const uint8_t codec_init_data_slave[] =
+{
+		SINGLE_SPEED
+		| RATIO0
+		| SLAVE
+		| DIF_I2S_24b,		//MODECTRL1
+
+		SLOW_FILT_SEL
+		| DEEMPH_OFF,		//DACCTRL
+
+		ATAPI_aLbR,			//DACMIX
+
+		0b00000000,			//DACAVOL
+		0b00000000,			//DACBVOL
+
+		ADC_DIF_I2S
+		/*| HPFDisableA
+		| HPFDisableB */	//ADCCTRL
+
+};
+
+static uint32_t codec_write_register(uint8_t RegisterAddr, uint8_t RegisterValue, I2C_TypeDef *CODEC);
+
+static uint32_t codec_reset(I2C_TypeDef *CODEC) {
+	uint8_t i;
+	uint32_t err = 0;
+
+	err += codec_write_register(CS4271_REG_MODELCTRL2, CPEN | PDN, CODEC); //Control Port Enable and Power Down Enable
+
+	for (i = 0; i < CS4271_NUM_REGS; i++)
+		err += codec_write_register(i + 1, codec_init_data_slave[i], CODEC);
+
+	err += codec_write_register(CS4271_REG_MODELCTRL2, CPEN, CODEC); //Power Down disable
+
+	return err;
 }
 
-void Codecs_Deinit(void) {
+uint32_t codec_register_setup() {
+	uint32_t err = 0;
+	codec_sai_init(48000);
+
+	CODECA_RESET_HIGH;
+	HAL_Delay(2);
+
+	err = codec_reset(CODECA_I2C);
+
+	return err;
+}
+
+void codec_reset_pin_init(void) {
 	GPIO_InitTypeDef gpio;
 
 	CODECA_RESET_RCC_ENABLE();
@@ -64,7 +108,7 @@ static uint32_t _check_errors(uint32_t retries) {
 	return --retries;
 }
 
-uint32_t Codec_WriteRegister(uint8_t RegisterAddr, uint8_t RegisterValue, I2C_TypeDef *CODEC) {
+static uint32_t codec_write_register(uint8_t RegisterAddr, uint8_t RegisterValue, I2C_TypeDef *CODEC) {
 	uint32_t retries = 16;
 	while (retries) {
 		if (HAL_I2C_Mem_Write(
@@ -73,10 +117,10 @@ uint32_t Codec_WriteRegister(uint8_t RegisterAddr, uint8_t RegisterValue, I2C_Ty
 			return 0;
 		retries = _check_errors(retries);
 	}
-	return Codec_TIMEOUT_UserCallback();
+	return 1;
 }
 
-void Codec_A_CtrlInterface_Init(void) {
+void codec_i2c_init(void) {
 	__HAL_RCC_I2C1_CLK_ENABLE();
 	hal_i2c1.Instance = I2C1;
 	hal_i2c1.Init.ClockSpeed = 50000;
@@ -95,7 +139,7 @@ void Codec_A_CtrlInterface_Init(void) {
 #define PROTOCOL SAI_PROTOCOL_DATASIZE_16BITEXTENDED
 #define STANDARD SAI_I2S_STANDARD
 
-void Codec_A_AudioInterface_Init(uint32_t AudioFreq) {
+void codec_sai_init(uint32_t AudioFreq) {
 	// CODEC A: DLD Left Channel
 
 	__HAL_RCC_SAI1_CLK_ENABLE();
@@ -136,7 +180,7 @@ void Codec_A_AudioInterface_Init(uint32_t AudioFreq) {
 	}
 }
 
-void Codec_GPIO_Init(void) {
+void codec_gpio_init(void) {
 	GPIO_InitTypeDef gpio;
 
 	// PB9     ------> I2C1_SDA

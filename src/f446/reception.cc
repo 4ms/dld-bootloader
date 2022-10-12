@@ -1,32 +1,29 @@
 #include "codec_CS4271.h"
 #include "dig_pins.h"
 #include "encoding/fsk/demodulator.h"
+#include "i2s.h"
 #include "ui_state.hh"
 
-static void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size);
+static void process_audio_block(int16_t *input, int16_t *output, uint16_t size);
 
 void start_reception() {
-	Codecs_Deinit();
-	DeInit_I2S_Clock();
-	DeInit_I2SDMA_Channel2();
-	DeInit_I2SDMA_Channel1();
+	codec_reset_pin_init();
+	codec_gpio_init();
+	codec_sai_init(48000);
+	codec_i2c_init();
 
-	Codec_GPIO_Init();
-	Codec_A_AudioInterface_Init(48000);
+	Init_I2SDMA_Channel();
 
-	init_audio_dma();
-
-	Codec_A_Register_Setup();
-
+	codec_register_setup();
 	set_codec_callback(process_audio_block);
 
-	Start_I2SDMA_Channel1();
+	Start_I2SDMA_Channel();
 }
 
 extern stm_audio_bootloader::Demodulator demodulator;
 extern volatile UiState ui_state;
 
-void process_audio_block(int16_t *input, int16_t *output, uint16_t ht, uint16_t size) {
+void process_audio_block(int16_t *input, int16_t *output, uint16_t size) {
 	static uint16_t discard_samples = 8000;
 	static bool last_sample = false;
 	bool sample;

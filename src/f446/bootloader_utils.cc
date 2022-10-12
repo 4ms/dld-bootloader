@@ -24,7 +24,7 @@
 //
 // -----------------------------------------------------------------------------
 
-#include "stm32f4xx_conf.h"
+#include "stm32f4xx.h"
 
 void reset_buses() {
 	RCC->APB1RSTR = 0xFFFFFFFFU;

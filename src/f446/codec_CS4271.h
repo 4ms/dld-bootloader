@@ -67,18 +67,10 @@
 #define CODEC_FLAG_TIMEOUT ((uint32_t)0x1000)
 #define CODEC_LONG_TIMEOUT ((uint32_t)(300 * CODEC_FLAG_TIMEOUT))
 
-void Codec_A_CtrlInterface_Init(void);
-void Codec_B_CtrlInterface_Init(void);
-
-void Codec_A_AudioInterface_Init(uint32_t AudioFreq);
-void Codec_B_AudioInterface_Init(uint32_t AudioFreq);
-
-uint32_t Codec_WriteRegister(uint8_t RegisterAddr, uint8_t RegisterValue, I2C_TypeDef *CODEC);
-
-void Codecs_Deinit(void);
-
-void Codec_GPIO_Init(void);
-
-void init_i2s_clkin(void);
+void codec_i2c_init(void);
+void codec_sai_init(uint32_t AudioFreq);
+void codec_reset_pin_init(void);
+void codec_gpio_init(void);
+uint32_t codec_register_setup();
 
 #endif

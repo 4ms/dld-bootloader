@@ -51,33 +51,20 @@ volatile int16_t ch2rx_buffer[codec_BUFF_LEN];
 uint32_t ch1tx_buffer_start, ch1rx_buffer_start;
 uint32_t ch2tx_buffer_start, ch2rx_buffer_start;
 
-static void (*audio_callback)(int16_t *, int16_t *, uint16_t, uint8_t);
+static void (*audio_callback)(int16_t *, int16_t *, uint16_t);
 
-void set_codec_callback(void (*cb)(int16_t *, int16_t *, uint16_t, uint8_t)) {
+void set_codec_callback(void (*cb)(int16_t *, int16_t *, uint16_t)) {
 	audio_callback = cb;
 }
 
 void init_audio_dma(void) {
-	Init_I2SDMA_Channel2();
-	Init_I2SDMA_Channel1();
+	Init_I2SDMA_Channel();
 }
 
-void Start_I2SDMA_Channel1(void) {
+void Start_I2SDMA_Channel(void) {
 	HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
 }
 
-void Start_I2SDMA_Channel2(void) {
-	HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
-}
-
-void DeInit_I2S_Clock(void) {
-}
-
-void DeInit_I2SDMA_Channel1(void) {
-}
-
-void DeInit_I2SDMA_Channel2(void) {
-}
 #define DMA_PDATAALIGN DMA_PDATAALIGN_WORD
 #define DMA_MDATAALIGN DMA_MDATAALIGN_WORD
 #define DMA_SIZE (codec_BUFF_LEN / 2)

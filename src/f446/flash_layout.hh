@@ -1,16 +1,16 @@
 #include <cstdint>
 
-constexpr inline uint32_t kSectorBaseAddress[] = {0x08000000,
-												  0x08004000,
-												  0x08008000,
-												  0x0800C000,
-												  0x08010000,
-												  0x08020000,
-												  0x08040000,//end of memory + 1
-												  };
-constexpr inline uint32_t kStartExecutionAddress = 0x08008000;
-constexpr inline uint32_t kStartReceiveAddress = 0x08008000;
-constexpr inline uint32_t EndOfMemory = 0x08040000 - 1;
+// constexpr inline uint32_t kSectorBaseAddress[] = {0x08000000,
+// 												  0x08004000,
+// 												  0x08008000,
+// 												  0x0800C000,
+// 												  0x08010000,
+// 												  0x08020000,
+// 												  0x08040000,//end of memory + 1
+// 												  };
+// constexpr inline uint32_t kStartExecutionAddress = 0x08008000;
+// constexpr inline uint32_t kStartReceiveAddress = 0x08008000;
+// constexpr inline uint32_t EndOfMemory = 0x08040000 - 1;
 
 ////
 
