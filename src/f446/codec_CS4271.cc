@@ -30,31 +30,20 @@
 #include "codec_CS4271_regs.h"
 #include "i2s.h"
 #include "panic.h"
+#include "timer.h"
 
 I2C_HandleTypeDef hal_i2c1;
 
 SAI_HandleTypeDef hsai_BlockA1;
 SAI_HandleTypeDef hsai_BlockB1;
 
-const uint8_t codec_init_data_slave[] =
-{
-		SINGLE_SPEED
-		| RATIO0
-		| SLAVE
-		| DIF_I2S_24b,		//MODECTRL1
-
-		SLOW_FILT_SEL
-		| DEEMPH_OFF,		//DACCTRL
-
-		ATAPI_aLbR,			//DACMIX
-
-		0b00000000,			//DACAVOL
-		0b00000000,			//DACBVOL
-
-		ADC_DIF_I2S
-		/*| HPFDisableA
-		| HPFDisableB */	//ADCCTRL
-
+const uint8_t codec_init_data_slave[] = {
+	SINGLE_SPEED | RATIO0 | SLAVE | DIF_I2S_24b, //MODECTRL1
+	SLOW_FILT_SEL | DEEMPH_OFF,					 //DACCTRL
+	ATAPI_aLbR,									 //DACMIX
+	0b00000000,									 //DACAVOL
+	0b00000000,									 //DACBVOL
+	ADC_DIF_I2S									 //ADCCTRL
 };
 
 static uint32_t codec_write_register(uint8_t RegisterAddr, uint8_t RegisterValue, I2C_TypeDef *CODEC);
@@ -75,10 +64,10 @@ static uint32_t codec_reset(I2C_TypeDef *CODEC) {
 
 uint32_t codec_register_setup() {
 	uint32_t err = 0;
-	codec_sai_init(48000);
+	codec_i2c_init();
 
 	CODECA_RESET_HIGH;
-	HAL_Delay(2);
+	delay(2);
 
 	err = codec_reset(CODECA_I2C);
 
