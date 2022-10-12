@@ -36,41 +36,14 @@
 #define PINGBUT_GPIO GPIOB
 #define PINGBUT (!(PINGBUT_GPIO->IDR & PINGBUT_pin))
 
-#define PINGJACK_pin GPIO_PIN_11
-#define PINGJACK_GPIO GPIOA
-#define PINGJACK (PINGJACK_GPIO->IDR & PINGJACK_pin)
-
-//Same pin as WS clock of I2S2 (LRCLK), as defined in codec.h
-#define EXTI_CLOCK_GPIO GPIOE
-#define EXTI_CLOCK_pin GPIO_PIN_4
-#define EXTI_CLOCK_IRQ EXTI4_IRQn
-#define EXTI_Handler EXTI4_IRQHandler
-
 // Infinite Repeat Button and Jack
-
 #define INF1BUT_pin GPIO_PIN_12
 #define INF1BUT_GPIO GPIOB
 #define INF1BUT (!(INF1BUT_GPIO->IDR & INF1BUT_pin))
 
-#define INF1JACK_pin GPIO_PIN_12
-#define INF1JACK_GPIO GPIOC
-#define INF1JACK ((INF1JACK_GPIO->IDR & INF1JACK_pin))
-
 #define INF2BUT_pin GPIO_PIN_7
 #define INF2BUT_GPIO GPIOD
 #define INF2BUT (!(INF2BUT_GPIO->IDR & INF2BUT_pin))
-
-#define INF2JACK_pin GPIO_PIN_8
-#define INF2JACK_GPIO GPIOA
-#define INF2JACK ((INF2JACK_GPIO->IDR & INF2JACK_pin))
-
-#define REV1JACK_pin GPIO_PIN_9
-#define REV1JACK_GPIO GPIOA
-#define REV1JACK ((REV1JACK_GPIO->IDR & REV1JACK_pin))
-
-#define REV2JACK_pin GPIO_PIN_11
-#define REV2JACK_GPIO GPIOG
-#define REV2JACK ((REV2JACK_GPIO->IDR & REV2JACK_pin))
 
 #define REV1BUT_pin GPIO_PIN_12
 #define REV1BUT_GPIO GPIOG
@@ -79,41 +52,6 @@
 #define REV2BUT_pin GPIO_PIN_13
 #define REV2BUT_GPIO GPIOB
 #define REV2BUT (!(REV2BUT_GPIO->IDR & REV2BUT_pin))
-
-#define SWITCH_CENTER 0b11
-#define SWITCH_UP 0b10
-#define SWITCH_DOWN 0b01
-#define SWITCH_INVALID 0b00
-
-#define TIMESW_CH1_T1_pin GPIO_PIN_4
-#define TIMESW_CH1_T1_GPIO GPIOD
-#define TIMESW_CH1_T2_pin GPIO_PIN_5
-#define TIMESW_CH1_T2_GPIO GPIOD
-#define TIMESW_CH1                                                                                                     \
-	(((TIMESW_CH1_T2_GPIO->IDR & TIMESW_CH1_T2_pin) ? 0b10 : 0b00) |                                                   \
-	 ((TIMESW_CH1_T1_GPIO->IDR & TIMESW_CH1_T1_pin) ? 0b01 : 0b00))
-
-#define TIMESW_CH2_T1_pin GPIO_PIN_15
-#define TIMESW_CH2_T1_GPIO GPIOB
-#define TIMESW_CH2_T2_pin GPIO_PIN_7
-#define TIMESW_CH2_T2_GPIO GPIOC
-#define TIMESW_CH2                                                                                                     \
-	(((TIMESW_CH2_T2_GPIO->IDR & TIMESW_CH2_T2_pin) ? 0b10 : 0b00) |                                                   \
-	 ((TIMESW_CH2_T1_GPIO->IDR & TIMESW_CH2_T1_pin) ? 0b01 : 0b00))
-
-// Jumper 1 (aka DEBUG3) is not connected, so init its pins as JUMPER 2
-// And always return 0 (no jumper installed)
-#define JUMPER_1_GPIO GPIOD
-#define JUMPER_1_pin GPIO_PIN_12
-#define JUMPER_1 (0)
-
-// DEBUG2
-#define JUMPER_2_GPIO GPIOD
-#define JUMPER_2_pin GPIO_PIN_12
-#define JUMPER_2 (!(JUMPER_2_GPIO->IDR & JUMPER_2_pin))
-
-#define DCINPUT_JUMPER JUMPER_1
-#define MODE_24BIT_JUMPER JUMPER_2
 
 //OUTPUTS
 
@@ -124,16 +62,6 @@
 #define CLKOUT_ON CLKOUT_GPIO->BSRR = CLKOUT_pin
 #define CLKOUT_OFF CLKOUT_GPIO->BSRR = (CLKOUT_pin << 16)
 #define CLKOUT_TRIG_TIME 960 /*20ms*/
-
-#define CLKOUT1_pin GPIO_PIN_6
-#define CLKOUT1_GPIO GPIOD
-#define CLKOUT1_ON CLKOUT1_GPIO->BSRR = CLKOUT1_pin
-#define CLKOUT1_OFF CLKOUT1_GPIO->BSRR = (CLKOUT1_pin << 16)
-
-#define CLKOUT2_pin GPIO_PIN_6
-#define CLKOUT2_GPIO GPIOC
-#define CLKOUT2_ON CLKOUT2_GPIO->BSRR = CLKOUT2_pin
-#define CLKOUT2_OFF CLKOUT2_GPIO->BSRR = (CLKOUT2_pin << 16)
 
 //PING Button LED
 
@@ -198,11 +126,6 @@
 #define DEBUG3_GPIO GPIOA
 #define DEBUG3_ON DEBUG3_GPIO->BSRR = DEBUG3
 #define DEBUG3_OFF DEBUG3_GPIO->BSRR = (DEBUG3 << 16)
-
-#define INFREVBUTTONJACK_PINGBUT_TIM TIM4
-#define INFREVBUTTONJACK_PINGBUT_TIM_RCC __HAL_RCC_TIM4_CLK_ENABLE
-#define INFREVBUTTONJACK_PINGBUT_TIM_IRQn TIM4_IRQn
-#define INFREVBUTTONJACK_PINGBUT_IRQHandler TIM4_IRQHandler
 
 void init_dig_inouts(void);
 
