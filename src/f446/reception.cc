@@ -31,30 +31,26 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t size) {
 	while (size) {
 		size -= 4;
 
-		*input++; //Return
-		*input++; //Return
+		*input++;	//Return
+		*input++;	//Return
+		t = *input; //Return
 
-		t = *input; //Main in
-		*input++;	//Main in
-		*input++;	//Main in
+		*input++; //Main in
+		*input++; //Main in
 
-		if (last_sample == true) {
-			if (t < -300)
-				sample = false;
-			else
-				sample = true;
-		} else {
-			if (t > 400)
-				sample = true;
-			else
-				sample = false;
-		}
+		// Anti-hysteresis: set threshold for true->false low
+		// And set the threshold for false->true high
+		if (last_sample == true)
+			sample = (t > -300);
+		else
+			sample = (t > 400);
+
 		last_sample = sample;
 
-		if (sample)
-			CLKOUT_ON;
-		else
-			CLKOUT_OFF;
+		// if (sample)
+		// 	CLKOUT_ON;
+		// else
+		// 	CLKOUT_OFF;
 
 		if (!discard_samples) {
 			demodulator.PushSample(sample);
@@ -68,9 +64,9 @@ void process_audio_block(int16_t *input, int16_t *output, uint16_t size) {
 			*output++ = 0;
 			*output++ = 0;
 		} else {
-			*output++ = t;
 			*output++ = 0;
-			*output++ = t;
+			*output++ = 0;
+			*output++ = sample ? 0x4000 : 0xC000;
 			*output++ = 0;
 		}
 	}
