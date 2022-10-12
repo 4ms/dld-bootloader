@@ -31,25 +31,17 @@
 #include "panic.h"
 #include "stm32f4xx.h"
 
-#define codec_BUFF_LEN 8
+#define codec_BUFF_LEN 32
 
 extern SAI_HandleTypeDef hsai_BlockA1;
 extern SAI_HandleTypeDef hsai_BlockB1;
-extern SAI_HandleTypeDef hsai_BlockA2;
-extern SAI_HandleTypeDef hsai_BlockB2;
 DMA_HandleTypeDef hdma_sai1_a;
 DMA_HandleTypeDef hdma_sai1_b;
-DMA_HandleTypeDef hdma_sai2_a;
-DMA_HandleTypeDef hdma_sai2_b;
 
 volatile int16_t ch1tx_buffer[codec_BUFF_LEN];
 volatile int16_t ch1rx_buffer[codec_BUFF_LEN];
 
-volatile int16_t ch2tx_buffer[codec_BUFF_LEN];
-volatile int16_t ch2rx_buffer[codec_BUFF_LEN];
-
 uint32_t ch1tx_buffer_start, ch1rx_buffer_start;
-uint32_t ch2tx_buffer_start, ch2rx_buffer_start;
 
 static void (*audio_callback)(int16_t *, int16_t *, uint16_t);
 
@@ -133,7 +125,7 @@ void Init_I2SDMA_Channel(void) {
 }
 
 // DMA interrupt for RX data Codec A
-void DMA2_Stream5_IRQHandler(void) {
+extern "C" void DMA2_Stream5_IRQHandler(void) {
 	int16_t *src, *dst;
 	uint16_t sz;
 
@@ -152,7 +144,7 @@ void DMA2_Stream5_IRQHandler(void) {
 		src = (int16_t *)(ch1rx_buffer_start) + sz;
 		dst = (int16_t *)(ch1tx_buffer_start) + sz;
 
-		audio_callback(src, dst, sz / 2);
+		audio_callback(src, dst, sz);
 
 		__HAL_DMA_CLEAR_FLAG(&hdma_sai1_b, DMA_FLAG_TCIF1_5);
 	}
@@ -164,14 +156,14 @@ void DMA2_Stream5_IRQHandler(void) {
 		src = (int16_t *)(ch1rx_buffer_start);
 		dst = (int16_t *)(ch1tx_buffer_start);
 
-		audio_callback(src, dst, sz / 2);
+		audio_callback(src, dst, sz);
 
 		__HAL_DMA_CLEAR_FLAG(&hdma_sai1_b, DMA_FLAG_HTIF1_5);
 	}
 }
 
 // DMA interrupt for TX data CodecA
-void DMA2_Stream1_IRQHandler(void) {
+extern "C" void DMA2_Stream1_IRQHandler(void) {
 	if (__HAL_DMA_GET_FLAG(&hdma_sai1_a, DMA_FLAG_TEIF1_5) != RESET)
 		__HAL_DMA_CLEAR_FLAG(&hdma_sai1_a, DMA_FLAG_TEIF1_5);
 
