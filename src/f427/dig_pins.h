@@ -26,15 +26,15 @@
 #define INF2BUT_GPIO GPIOA
 #define INF2BUT (!(INF2BUT_GPIO->IDR & INF2BUT_pin))
 
-#define REVSW_RCC RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOG
+#define REVBUT_RCC RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOG
 
-#define REV1SW_pin GPIO_Pin_10
-#define REV1SW_GPIO GPIOG
-#define REVSW_CH1 (!(REV1SW_GPIO->IDR & REV1SW_pin))
+#define REV1BUT_pin GPIO_Pin_10
+#define REV1BUT_GPIO GPIOG
+#define REV1BUT (!(REV1BUT_GPIO->IDR & REV1BUT_pin))
 
-#define REV2SW_pin GPIO_Pin_1
-#define REV2SW_GPIO GPIOA
-#define REVSW_CH2 (!(REV2SW_GPIO->IDR & REV2SW_pin))
+#define REV2BUT_pin GPIO_Pin_1
+#define REV2BUT_GPIO GPIOA
+#define REV2BUT (!(REV2BUT_GPIO->IDR & REV2BUT_pin))
 
 //OUTPUTS
 

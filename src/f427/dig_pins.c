@@ -37,19 +37,18 @@ void init_dig_inouts(void) {
 	GPIO_Init(CLKOUT_GPIO, &gpio);
 	CLKOUT_OFF;
 
-
 	//Configure inputs
 	gpio.GPIO_Mode = GPIO_Mode_IN;
 	gpio.GPIO_Speed = GPIO_Speed_50MHz;
 	gpio.GPIO_PuPd = GPIO_PuPd_UP;
 
 	//Reverse buttons
-	RCC_AHB1PeriphClockCmd(REVSW_RCC, ENABLE);
+	RCC_AHB1PeriphClockCmd(REVBUT_RCC, ENABLE);
 
-	gpio.GPIO_Pin = REV2SW_pin;
-	GPIO_Init(REV2SW_GPIO, &gpio);
-	gpio.GPIO_Pin = REV1SW_pin;
-	GPIO_Init(REV1SW_GPIO, &gpio);
+	gpio.GPIO_Pin = REV2BUT_pin;
+	GPIO_Init(REV2BUT_GPIO, &gpio);
+	gpio.GPIO_Pin = REV1BUT_pin;
+	GPIO_Init(REV1BUT_GPIO, &gpio);
 
 	//Ping button and jack
 	RCC_AHB1PeriphClockCmd(PING_RCC, ENABLE);
