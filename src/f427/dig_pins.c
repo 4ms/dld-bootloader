@@ -16,7 +16,7 @@ void init_dig_inouts(void) {
 
 	//LEDs
 	RCC_AHB1PeriphClockCmd(LED_RCC, ENABLE);
-	gpio.GPIO_Pin = LED_OVLD1 | LED_OVLD2;
+	gpio.GPIO_Pin = LED_LOOP1 | LED_LOOP2;
 	GPIO_Init(LED_GPIO, &gpio);
 
 	RCC_AHB1PeriphClockCmd(PINGBUTLED_RCC, ENABLE);
@@ -30,6 +30,14 @@ void init_dig_inouts(void) {
 	RCC_AHB1PeriphClockCmd(INF2_BUTLED_RCC, ENABLE);
 	gpio.GPIO_Pin = LED_INF2_pin;
 	GPIO_Init(LED_INF2_GPIO, &gpio);
+
+	RCC_AHB1PeriphClockCmd(REV1_BUTLED_RCC, ENABLE);
+	gpio.GPIO_Pin = LED_REV1_pin;
+	GPIO_Init(LED_REV1_GPIO, &gpio);
+
+	RCC_AHB1PeriphClockCmd(REV2_BUTLED_RCC, ENABLE);
+	gpio.GPIO_Pin = LED_REV2_pin;
+	GPIO_Init(LED_REV2_GPIO, &gpio);
 
 	//CLKOUT
 	RCC_AHB1PeriphClockCmd(CLKOUT_RCC, ENABLE);

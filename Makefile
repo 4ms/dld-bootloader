@@ -84,7 +84,7 @@ FLAGS += -fsingle-precision-constant -Wdouble-promotion
 FLAGS += -ffreestanding
 FLAGS += -fcommon
 FLAGS += -fdata-sections -ffunction-sections
-FLAGS += -fno-exceptions -fno-unwind-tables
+FLAGS += -fno-exceptions -fno-unwind-tables 
 FLAGS += $(target_defs)
 FLAGS += -I. $(INCLUDES)
 
@@ -94,7 +94,7 @@ CFLAGS += $(FLAGS)
 CXXFLAGS = -std=c++17
 CXXFLAGS += -Wno-register
 CXXFLAGS += -fno-rtti
-CXXFLAGS += -fno-threadsafe-statics
+CXXFLAGS += -fno-threadsafe-statics 
 CXXFLAGS += $(FLAGS)
 
 AFLAGS  = $(ARCHFLAGS)
